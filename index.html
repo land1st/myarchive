@@ -8,9 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 아이콘 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 구글 Identity Services (GIS) 라이브러리 (구글 로그인 및 드라이브 연동) -->
+    <!-- 구글 Identity Services (GIS) 라이브러리 -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- 구글 API 클라이언트 API 라이브러리 -->
+    <!-- 구글 API 클라이언트 라이브러리 -->
     <script src="https://apis.google.com/js/api.js" async defer></script>
     <!-- Pretendard 폰트 최우선 적용 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -39,7 +39,7 @@
             <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="text-gray-500 hover:text-gray-900 text-lg p-1.5 rounded-lg hover:bg-gray-100 transition">
                 <i class="fa-solid fa-moon"></i>
             </button>
-            <!-- 🔄 구글 드라이브 연동 상태 -> Lee님 맞춤형 토글형 버튼 컴포넌트로 개편 -->
+            <!-- 🔄 구글 드라이브 연동 상태 토글 버튼 -->
             <button onclick="handleSyncButtonClick()" id="sync-status" class="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm">
                 <i class="fa-solid fa-circle-notch fa-spin hidden" id="sync-spinner"></i>
                 <i class="fa-brands fa-google" id="sync-icon"></i>
@@ -63,12 +63,12 @@
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-sm"></i>
                         <input type="text" id="search-input" oninput="renderCards()" placeholder="기록된 모든 미디어 검색..." class="w-full bg-[#f1f3f5] pl-10 pr-4 py-2.5 rounded-lg text-sm text-[#495057] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent transition">
                     </div>
-                    <!-- 필터 가로 스크롤 영역 -->
+                    <!-- 필터 가로 스크롤 영역 (세분화 반영) -->
                     <div class="flex space-x-1.5 overflow-x-auto w-full md:w-auto no-scrollbar py-1">
                         <button onclick="filterCategory('all')" id="btn-filter-all" class="filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white shrink-0 shadow-sm transition">전체</button>
                         <button onclick="filterCategory('book')" id="btn-filter-book" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">📚 독서</button>
                         <button onclick="filterCategory('movie')" id="btn-filter-movie" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">🎬 영화</button>
-                        <button onclick="filterCategory('drama')" id="btn-filter-drama" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">📺 드라마</button>
+                        <button onclick="filterCategory('drama')" id="btn-filter-drama" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">📺 드라마/예능</button>
                         <button onclick="filterCategory('music')" id="btn-filter-music" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">🎵 음악</button>
                     </div>
                 </div>
@@ -134,7 +134,7 @@
                         <label id="lbl-type" class="block mb-1 text-gray-500 font-semibold">구분</label>
                         <select id="form-type" onchange="handleTypeChange()" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 text-[#495057] font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
                             <option value="MOVIE">🎬 영화</option>
-                            <option value="DRAMA">📺 드라마</option>
+                            <option value="DRAMA">📺 드라마/예능</option>
                             <option value="BOOK">📚 독서</option>
                             <option value="MUSIC">🎵 음악</option>
                         </select>
@@ -147,6 +147,28 @@
                         <label id="lbl-author" class="block mb-1 text-gray-500 font-semibold">저자 / 출판사</label>
                         <input type="text" id="form-author" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057]" placeholder="예: 앤디 위어">
                     </div>
+                    
+                    <!-- 📊 3. 신규 동적 진행률 트래킹 컨테이너 스펙 추가 영역 -->
+                    <div id="progress-tracking-box" class="hidden p-3 rounded-lg border border-gray-200/60 dark:border-gray-700/60 space-y-3">
+                        <div class="flex items-center justify-between font-semibold text-gray-500 dark:text-gray-400">
+                            <span id="progress-lbl-title">콘텐츠 트래커</span>
+                            <span id="progress-live-percent" class="text-blue-500 font-bold">0%</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label id="lbl-total-unit" class="block mb-1 text-[11px] text-gray-400">전체 페이지 수</label>
+                                <input type="number" id="form-progress-total" value="100" min="1" oninput="syncProgressSliderMax(); calculateLivePercent();" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2 focus:outline-none text-[#495057]">
+                            </div>
+                            <div>
+                                <label id="lbl-current-unit" class="block mb-1 text-[11px] text-gray-400">현재 읽은 페이지</label>
+                                <input type="number" id="form-progress-current" value="0" min="0" oninput="syncProgressSliderVal(); calculateLivePercent();" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2 focus:outline-none text-[#495057]">
+                            </div>
+                        </div>
+                        <div>
+                            <input type="range" id="form-progress-range" min="0" max="100" value="0" oninput="syncProgressInputVal(); calculateLivePercent();" class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        </div>
+                    </div>
+
                     <div>
                         <label id="lbl-tags" class="block mb-1 text-gray-500 font-semibold">플랫폼 / 커스텀 태그</label>
                         <input type="text" id="form-tags" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057]" placeholder="쉼표로 구분 (예: 넷플릭스, 아이맥스)">
@@ -218,6 +240,18 @@
                     <h3 id="modal-title" class="text-base font-bold text-[#212529] mt-1.5">콘텐츠 명</h3>
                 </div>
                 
+                <!-- 📊 모달 내부 상세 트래킹 제어 및 수정 폼 주입 -->
+                <div id="modal-progress-box" class="hidden p-3 rounded-lg bg-gray-50 dark:bg-[#26262b] space-y-2">
+                    <div class="flex justify-between font-semibold text-gray-400">
+                        <span id="modal-progress-lbl">현재 진행률</span>
+                        <span id="modal-live-percent" class="text-blue-500 font-bold">0%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="modal-progress-total" oninput="calculateModalLivePercent();" class="bg-white dark:bg-[#1a1a1e] p-2 rounded text-center text-sm focus:outline-none">
+                        <input type="number" id="modal-progress-current" oninput="calculateModalLivePercent();" class="bg-white dark:bg-[#1a1a1e] p-2 rounded text-center text-sm focus:outline-none">
+                    </div>
+                </div>
+
                 <div class="space-y-3">
                     <div>
                         <label id="lbl-modal-review" class="block text-gray-400 font-semibold mb-1">한줄평 수정</label>
@@ -251,9 +285,7 @@
 
     <!-- ================= [엔진 및 데이터 연동 자바스크립트 스크립트] ================= -->
     <script>
-        // 🔑 Lee님의 구글 클라우드 클라이언트 ID 맵핑
         const CLIENT_ID = '148691412107-od4tsqpl11hvm4sbajuku7t1dh8l1p23.apps.googleusercontent.com';
-        // 구글 드라이브 파일 읽기/쓰기 및 앱 전용 폴더 권한 스코프
         const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
         const BACKUP_FILE_NAME = 'my_archive_data.json';
 
@@ -261,13 +293,14 @@
         let gapiInited = false;
         let gisInited = false;
         let googleAccessToken = null;
-        let driveFileId = null; // 구글 드라이브에 저장된 아카이브 파일 고유 ID
+        let driveFileId = null;
 
+        // 원본 배열 데이터에 신규 트래킹 프로퍼티 스펙 보강 동기화
         const defaultArchive = [
-            { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500' },
-            { id: 2, type: 'DRAMA', title: '레이디두아', tags: ['DRAMA', '넷플릭스', '완주'], rating: 4, review: '명품? No 사치품 !!!', start: '2026-03-27', end: '2026-03-28', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500' },
+            { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500', totalUnit: 8, currentUnit: 8 },
+            { id: 2, type: 'DRAMA', title: '레이디두아', tags: ['DRAMA', '넷플릭스', '완주'], rating: 4, review: '명품? No 사치품 !!!', start: '2026-03-27', end: '2026-03-28', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500', totalUnit: 12, currentUnit: 6 },
             { id: 3, type: 'MOVIE', title: '행복의 나라로', tags: ['MOVIE'], rating: 5, review: '이선균 송영규 두 분 명목을 빕니다.', start: '2026-03-23', end: '', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500' },
-            { id: 4, type: 'BOOK', title: '프로젝트 헤일 메리', tags: ['MOVIE', 'IMAX'], rating: 5, review: '아이맥스 최고', start: '2026-03-21', end: '', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500' }
+            { id: 4, type: 'BOOK', title: '프로젝트 헤일 메리', tags: ['MOVIE', 'IMAX'], rating: 5, review: '아이맥스 최고', start: '2026-03-21', end: '', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500', totalUnit: 540, currentUnit: 180 }
         ];
 
         let archiveLogs = JSON.parse(localStorage.getItem('archiveLogs')) || defaultArchive;
@@ -279,20 +312,19 @@
             renderCards();
             document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
             
-            // 구글 인증 API 로드 개시
             gapi.load('client', initGapiClient);
             initHasClient();
+            handleTypeChange(); // 초기 입력 트래커 바 상태 정렬
         };
 
-        /* ================= [백엔드 모듈: 구글 클라우드 드라이브 API 연동 엔진] ================= */
+        /* ================= [구글 클라우드 동기화 코어 백엔드 모듈] ================= */
         function initGapiClient() {
             gapi.client.init({
-                // Discovery Docs를 통해 드라이브 v3 API 스펙 바인딩
                 discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
             }).then(() => {
                 gapiInited = true;
                 checkAuthStates();
-            }).catch(err => console.error("GAPI 초기화 에러:", err));
+            }).catch(err => console.error(err));
         }
 
         function initHasClient() {
@@ -323,14 +355,11 @@
             }
         }
 
-        // Lee님의 아이디어가 전격 반영된 토글 제어식 구글 로그인/로그아웃 스위처 모듈
         function handleSyncButtonClick() {
             if (!googleAccessToken) {
-                // 연동 전 상태인 경우 -> 로그인 권한 요청 창 실행
                 tokenClient.requestAccessToken({ prompt: 'consent' });
             } else {
-                // 이미 연동되어 있는 상태에서 클릭 시 -> 계정 세션 해제(로그아웃) 프로세스 가동
-                if(confirm("구글 계정 연동을 해제(로그아웃)하시겠습니까?\n보관된 로컬 아카이브 기록은 유실되지 않고 안전하게 유지됩니다.")) {
+                if(confirm("구글 계정 연동을 해제(로그아웃)하시겠습니까?\n보관된 로컬 아카이브 기록은 안전하게 유지됩니다.")) {
                     googleAccessToken = null;
                     driveFileId = null;
                     localStorage.removeItem('googleToken');
@@ -339,7 +368,6 @@
             }
         }
 
-        // 구글 드라이브에서 JSON 백업본 탐색 및 병합 처리 함수
         function loadDataFromGoogleDrive() {
             gapi.client.setToken({ access_token: googleAccessToken });
             gapi.client.drive.files.list({
@@ -350,41 +378,35 @@
                 const files = response.result.files;
                 if (files && files.length > 0) {
                     driveFileId = files[0].id;
-                    // 파일 내용 패치 다운로드
                     gapi.client.drive.files.get({
                         fileId: driveFileId,
                         alt: 'media'
                     }).then(res => {
                         if (res.result && Array.isArray(res.result)) {
-                            // 클라우드 데이터와 로컬 데이터 병합 병렬 처리 (id 기준 유니크 유지)
                             const cloudData = res.result;
                             const localMap = new Map(archiveLogs.map(item => [item.id, item]));
                             cloudData.forEach(item => localMap.set(item.id, item));
-                            archiveLogs = Array.from(localMap.values()).sort((a, b) => b.id - a.id);
-                            localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
-                            renderCards();
+                            archiveLogs = Array.from(localMap.values());
+                            saveAndRefresh();
                             showSyncStatus('success', '구글 로그아웃');
                         } else {
                             showSyncStatus('success', '구글 로그아웃');
                         }
                     }).catch(err => {
-                        console.error("파일 다운로드 실패, 재인증 필요:", err);
+                        console.error(err);
                         showSyncStatus('unlinked', '구글 계정 연동');
                         googleAccessToken = null;
                         localStorage.removeItem('googleToken');
                     });
                 } else {
-                    // 파일이 없으면 로컬 데이터를 기반으로 구글 드라이브에 최초 생성 생성
-                    showSyncStatus('loading', '데이터 동기화 중...');
                     uploadDataToGoogleDrive(true);
                 }
             }).catch(err => {
-                console.error("드라이브 목록 검색 실패:", err);
+                console.error(err);
                 showSyncStatus('error', '구글 연동 에러');
             });
         }
 
-        // 구글 드라이브로 데이터 업로드 동기화 실행 함수
         function uploadDataToGoogleDrive(isFirstCreation = false) {
             if (!googleAccessToken) return;
             gapi.client.setToken({ access_token: googleAccessToken });
@@ -409,7 +431,6 @@
                 close_delim;
 
             if (isFirstCreation || !driveFileId) {
-                // 신규 생성 POST 요청
                 gapi.client.request({
                     path: '/upload/drive/v3/files',
                     method: 'POST',
@@ -419,9 +440,8 @@
                 }).then(res => {
                     driveFileId = res.result.id;
                     showSyncStatus('success', '구글 로그아웃');
-                }).catch(err => console.error("최초 업로드 실패:", err));
+                }).catch(err => console.error(err));
             } else {
-                // 기존 파일 덮어쓰기 PATCH 업데이트 요청
                 gapi.client.request({
                     path: `/upload/drive/v3/files/${driveFileId}`,
                     method: 'PATCH',
@@ -430,11 +450,10 @@
                     body: multipartRequestBody
                 }).then(() => {
                     showSyncStatus('success', '구글 로그아웃');
-                }).catch(err => console.error("업데이트 백업 실패:", err));
+                }).catch(err => console.error(err));
             }
         }
 
-        // 🛠️ Lee님의 요청에 따라 직관적이고 미니멀한 명칭으로 재구현된 전용 상태 피드백 인디케이터
         function showSyncStatus(type, message) {
             const btn = document.getElementById('sync-status');
             const icon = document.getElementById('sync-icon');
@@ -443,29 +462,277 @@
 
             spinner.classList.add('hidden');
             icon.classList.remove('hidden', 'text-gray-500', 'text-gray-400', 'text-blue-500', 'text-emerald-500', 'text-amber-500', 'fa-brands', 'fa-solid', 'fa-google', 'fa-triangle-exclamation');
-
             txt.innerText = message;
 
             if (type === 'success') {
-                // 구글 연동 및 동기화 무결성 확보 완료 상태 -> "구글 로그아웃" 버튼 스펙 명시 및 세련된 그린에메랄드 매칭
                 btn.className = "text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900/50 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200";
                 icon.className = "fa-brands fa-google text-emerald-500";
             } else if (type === 'loading') {
-                // 수동 및 실시간 데이터 트래픽 전송 중
                 btn.className = "text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-900/50 font-semibold flex items-center gap-1.5 transition shadow-sm";
                 icon.className = "hidden";
                 spinner.classList.remove('hidden');
             } else if (type === 'unlinked') {
-                // 구글 계정 미연동 초기 상태 -> 별도 사이트 회원가입 혼동을 없앤 깔끔한 톤다운 그레이 컴포넌트 마감
                 const isDark = currentThemeMode === 'dark';
                 btn.className = isDark 
                     ? "text-xs bg-[#262930] text-gray-300 px-3 py-1.5 rounded-full border border-transparent font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm hover:bg-[#31353e]"
                     : "text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm hover:bg-gray-200";
                 icon.className = "fa-brands fa-google " + (isDark ? 'text-gray-400' : 'text-gray-500');
             } else {
-                // 에러 피드백 상태
                 btn.className = "text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-900/50 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm";
                 icon.className = "fa-solid fa-triangle-exclamation text-amber-500";
+            }
+        }
+
+        /* ================= [프론트엔드 모듈: 트래커 및 정렬 특화 렌더러] ================= */
+        
+        // 📊 3. 드래그 슬라이더와 넘버 인풋 필드 간 양방향 연동 동기화 로직
+        function syncProgressSliderMax() {
+            const total = parseInt(document.getElementById('form-progress-total').value) || 1;
+            const slider = document.getElementById('form-progress-range');
+            const currentInput = document.getElementById('form-progress-current');
+            slider.max = total;
+            currentInput.max = total;
+        }
+        function syncProgressSliderVal() {
+            const current = parseInt(document.getElementById('form-progress-current').value) || 0;
+            document.getElementById('form-progress-range').value = current;
+        }
+        function syncProgressInputVal() {
+            const sliderVal = document.getElementById('form-progress-range').value;
+            document.getElementById('form-progress-current').value = sliderVal;
+        }
+        function calculateLivePercent() {
+            const total = parseInt(document.getElementById('form-progress-total').value) || 1;
+            const current = parseInt(document.getElementById('form-progress-current').value) || 0;
+            const pct = Math.min(100, Math.round((current / total) * 100));
+            document.getElementById('progress-live-percent').innerText = `${pct}%`;
+        }
+
+        function calculateModalLivePercent() {
+            const total = parseInt(document.getElementById('modal-progress-total').value) || 1;
+            const current = parseInt(document.getElementById('modal-progress-current').value) || 0;
+            const pct = Math.min(100, Math.round((current / total) * 100));
+            document.getElementById('modal-live-percent').innerText = `${pct}%`;
+        }
+
+        // ⏱️ 2. 시작(관람)날짜를 기준으로 내림차순(최신순) 정렬 처리 알고리즘 교체
+        function getSortedArchiveLogs() {
+            return [...archiveLogs].sort((a, b) => {
+                // 시작일이 없는 경우 예외처리 방어 로직 (맨 아래로 정렬)
+                const dateA = a.start ? a.start : "0000-00-00";
+                const dateB = b.start ? b.start : "0000-00-00";
+                
+                if (dateA < dateB) return 1;
+                if (dateA > dateB) return -1;
+                return b.id - a.id; // 시작일이 같으면 등록 고유 ID 역순 정렬
+            });
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('media-grid');
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            grid.innerHTML = '';
+
+            // 시작날짜 기준 정렬 정렬 데이터 획득
+            const sortedData = getSortedArchiveLogs();
+
+            const items = sortedData.filter(log => {
+                const isCat = currentCategory === 'all' || log.type.toLowerCase() === currentCategory;
+                const isKey = log.title.toLowerCase().includes(keyword) || log.review.toLowerCase().includes(keyword);
+                return isCat && isKey;
+            });
+
+            document.getElementById('stat-count-media').innerText = `${archiveLogs.length}개`;
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-400 text-sm">아카이브가 텅 비어 있습니다.</div>`;
+                return;
+            }
+
+            items.forEach(log => {
+                const stars = '★'.repeat(log.rating) + '☆'.repeat(5 - log.rating);
+                const isDark = currentThemeMode === 'dark';
+                const cardBg = isDark ? "bg-[#1a1a1e] border-gray-800 hover:border-gray-700" : "bg-white border-[#e9ecef] shadow-sm hover:shadow-md hover:border-gray-300";
+                const titleColor = isDark ? "text-white" : "text-black";
+                const reviewColor = isDark ? "text-gray-400" : "text-[#495057]";
+                const tagBg = isDark ? "bg-[#26262b] text-gray-300 border-gray-700" : "bg-[#f1f3f5] text-[#495057] border-[#e9ecef]";
+
+                const tagSection = log.tags.map(t => `<span class="${tagBg} px-2 py-0.5 rounded text-[10px] font-semibold border">${t}</span>`).join('');
+                const dateView = log.end ? `${log.start.replace(/-/g, '/')} - ${log.end.replace(/-/g, '/')}` : log.start.replace(/-/g, '/');
+
+                // 📊 3. 카드 하단에 동적 프로그레스 게이지 바 마크업 주입 
+                let progressGaugeMarkup = '';
+                if (log.totalUnit && log.totalUnit > 0) {
+                    const currentUnit = log.currentUnit || 0;
+                    const pct = Math.min(100, Math.round((currentUnit / log.totalUnit) * 100));
+                    const unitLabel = log.type === 'BOOK' ? '페이지' : '회차';
+                    
+                    progressGaugeMarkup = `
+                        <div class="mt-2 space-y-1">
+                            <div class="flex justify-between text-[10px] font-medium text-gray-400">
+                                <span>진행도: ${currentUnit}/${log.totalUnit} ${unitLabel}</span>
+                                <span class="text-blue-500 font-bold">${pct}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                                <div class="${pct === 100 ? 'bg-emerald-500' : 'bg-blue-500'} h-full rounded-full transition-all" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = `${cardBg} rounded-xl overflow-hidden transition duration-200 cursor-pointer flex flex-col border`;
+                card.setAttribute("onclick", `openDetailModal(${log.id})`);
+                
+                card.innerHTML = `
+                    <div class="relative pt-[52%] bg-gray-800 overflow-hidden">
+                        <img src="${log.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500'}" class="absolute inset-0 w-full h-full object-cover">
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow justify-between space-y-2">
+                        <div>
+                            <div class="text-sm font-bold ${titleColor} flex items-center gap-1.5">
+                                <i class="fa-regular fa-file-text text-gray-400 text-xs"></i>
+                                <span class="truncate">${log.title}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mt-1.5">${tagSection}</div>
+                            <div class="text-amber-500 font-medium text-xs mt-1 tracking-tight">${stars}</div>
+                            ${progressGaugeMarkup}
+                            <p class="text-xs ${reviewColor} line-clamp-2 mt-2 leading-relaxed">${log.review || '작성된 평이 없습니다.'}</p>
+                        </div>
+                        <div class="pt-2 border-t ${isDark ? 'border-gray-800/80' : 'border-[#f1f3f5]'} text-[10px] text-gray-400 flex items-center font-medium">
+                            <i class="fa-regular fa-calendar mr-1"></i>${dateView}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openDetailModal(id) {
+            const target = archiveLogs.find(l => l.id === id);
+            if (!target) return;
+
+            document.getElementById('modal-id').value = target.id;
+            document.getElementById('modal-title').innerText = target.title;
+            document.getElementById('modal-type-badge').innerText = target.type;
+            document.getElementById('modal-review').value = target.review;
+            document.getElementById('modal-rating').value = target.rating;
+            document.getElementById('modal-img').src = target.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500';
+            document.getElementById('modal-date-display').innerText = target.start.replace(/-/g, '/');
+
+            // 📊 모달 오픈 시 진행률 트래커 바인딩 조치
+            const modalProgBox = document.getElementById('modal-progress-box');
+            if (target.type === 'BOOK' || target.type === 'DRAMA') {
+                modalProgBox.classList.remove('hidden');
+                document.getElementById('modal-progress-lbl').innerText = target.type === 'BOOK' ? '독서 트래킹 (페이지)' : '드라마/예능 트래킹 (회차)';
+                document.getElementById('modal-progress-total').value = target.totalUnit || 10;
+                document.getElementById('modal-progress-current').value = target.currentUnit || 0;
+                calculateModalLivePercent();
+            } else {
+                modalProgBox.classList.add('hidden');
+            }
+
+            applyThemeMode(currentThemeMode);
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function submitUpdateLog() {
+            const id = parseInt(document.getElementById('modal-id').value);
+            const target = archiveLogs.find(l => l.id === id);
+            if(target) {
+                target.review = document.getElementById('modal-review').value;
+                target.rating = parseInt(document.getElementById('modal-rating').value);
+                
+                // 모달 진행도 수정 수치 수집 동기화
+                if (target.type === 'BOOK' || target.type === 'DRAMA') {
+                    target.totalUnit = parseInt(document.getElementById('modal-progress-total').value) || 1;
+                    target.currentUnit = parseInt(document.getElementById('modal-progress-current').value) || 0;
+                }
+
+                saveAndRefresh();
+                closeDetailModal();
+            }
+        }
+
+        function submitDeleteLog() {
+            const id = parseInt(document.getElementById('modal-id').value);
+            if(confirm("이 미디어 로그 기록을 삭제할까요?")) {
+                archiveLogs = archiveLogs.filter(l => l.id !== id);
+                saveAndRefresh();
+                closeDetailModal();
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('form-type').value;
+            const title = document.getElementById('form-title').value;
+            const tagsIn = document.getElementById('form-tags').value;
+            const tags = tagsIn ? tagsIn.split(',').map(t => t.trim()) : [type];
+            const start = document.getElementById('form-start').value;
+            const end = document.getElementById('form-end').value;
+            const rating = parseInt(document.getElementById('form-rating').value);
+            const image = document.getElementById('form-image').value;
+            const review = document.getElementById('form-review').value;
+
+            // 📊 3. 트래커 저장 주입 구조화
+            let totalUnit = null;
+            let currentUnit = null;
+            if (type === 'BOOK' || type === 'DRAMA') {
+                totalUnit = parseInt(document.getElementById('form-progress-total').value) || 1;
+                currentUnit = parseInt(document.getElementById('form-progress-current').value) || 0;
+            }
+
+            archiveLogs.unshift({ id: Date.now(), type, title, tags, start, end, rating, image, review, totalUnit, currentUnit });
+            saveAndRefresh();
+            document.getElementById('media-form').reset();
+            document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
+            handleTypeChange(); // 입력 바 초기화 유도
+            applyThemeMode(currentThemeMode);
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
+            renderCards();
+            if (googleAccessToken) {
+                uploadDataToGoogleDrive();
+            }
+        }
+
+        // 📊 3. 드롭다운 변경 시 동적으로 폼 인풋창 제어하는 기능 가동
+        function handleTypeChange() {
+            const bMeta = document.getElementById('book-meta-fields');
+            const type = document.getElementById('form-type').value;
+            const pBox = document.getElementById('progress-tracking-box');
+            
+            if(type === 'BOOK') bMeta.classList.remove('hidden');
+            else bMeta.classList.add('hidden');
+
+            // 독서 / 드라마/예능 맞춤 레이블 분기 제어
+            if (type === 'BOOK') {
+                pBox.classList.remove('hidden');
+                document.getElementById('progress-lbl-title').innerText = "📖 독서 진행 상황 트래커";
+                document.getElementById('lbl-total-unit').innerText = "전체 페이지 수";
+                document.getElementById('lbl-current-unit').innerText = "현재 읽은 페이지";
+                document.getElementById('form-progress-total').value = 300;
+                document.getElementById('form-progress-current').value = 0;
+                syncProgressSliderMax();
+                calculateLivePercent();
+            } else if (type === 'DRAMA') {
+                pBox.classList.remove('hidden');
+                document.getElementById('progress-lbl-title').innerText = "📺 드라마/예능 시청 트래커";
+                document.getElementById('lbl-total-unit').innerText = "전체 총 화수(회차)";
+                document.getElementById('lbl-current-unit').innerText = "현재 시청 완료 회차";
+                document.getElementById('form-progress-total').value = 16;
+                document.getElementById('form-progress-current').value = 0;
+                syncProgressSliderMax();
+                calculateLivePercent();
+            } else {
+                pBox.classList.add('hidden'); // 영화, 음악일 때는 숨김
             }
         }
 
@@ -475,7 +742,6 @@
             applyThemeMode(currentThemeMode);
         }
 
-        // 원본 마크업과 100% 매치되는 테마 엔진 제어 모듈
         function applyThemeMode(mode) {
             const body = document.getElementById('app-body');
             const header = document.getElementById('app-header');
@@ -500,7 +766,9 @@
                 document.getElementById('form-start'), document.getElementById('form-end'),
                 document.getElementById('form-rating'), document.getElementById('form-image'),
                 document.getElementById('form-review'), document.getElementById('modal-review'),
-                document.getElementById('modal-rating'), document.getElementById('modal-date-display')
+                document.getElementById('modal-rating'), document.getElementById('modal-date-display'),
+                document.getElementById('form-progress-total'), document.getElementById('form-progress-current'),
+                document.getElementById('modal-progress-total'), document.getElementById('modal-progress-current')
             ];
 
             const inputLabels = [
@@ -530,7 +798,6 @@
                 
                 inputLabels.forEach(lbl => { if(lbl) lbl.className = "block mb-1 text-gray-400 font-semibold"; });
                 
-                // 지정해주신 다크모드 인풋 그레이 스펙 강제 주입 고정 유지
                 inputs.forEach(input => {
                     if (input) {
                         input.style.backgroundColor = "#262930";
@@ -571,12 +838,9 @@
                 toggleBtn.innerHTML = `<i class="fa-solid fa-moon"></i>`;
             }
             
-            // 토글 컴포넌트 상태 갱신 유도
-            if (!googleAccessToken) {
-                showSyncStatus('unlinked', '구글 계정 연동');
-            } else {
-                showSyncStatus('success', '구글 로그아웃');
-            }
+            if (!googleAccessToken) showSyncStatus('unlinked', '구글 계정 연동');
+            else showSyncStatus('success', '구글 로그아웃');
+            
             updateFilterButtonsUI();
         }
 
@@ -598,141 +862,6 @@
                     }
                 }
             });
-        }
-
-        function filterCategory(cat) {
-            currentCategory = cat;
-            updateFilterButtonsUI();
-            renderCards();
-        }
-
-        function renderCards() {
-            const grid = document.getElementById('media-grid');
-            const keyword = document.getElementById('search-input').value.toLowerCase();
-            grid.innerHTML = '';
-
-            const items = archiveLogs.filter(log => {
-                const isCat = currentCategory === 'all' || log.type.toLowerCase() === currentCategory;
-                const isKey = log.title.toLowerCase().includes(keyword) || log.review.toLowerCase().includes(keyword);
-                return isCat && isKey;
-            });
-
-            document.getElementById('stat-count-media').innerText = `${archiveLogs.length}개`;
-
-            if (items.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-400 text-sm">아카이브가 텅 비어 있습니다.</div>`;
-                return;
-            }
-
-            items.forEach(log => {
-                const stars = '★'.repeat(log.rating) + '☆'.repeat(5 - log.rating);
-                const isDark = currentThemeMode === 'dark';
-                const cardBg = isDark ? "bg-[#1a1a1e] border-gray-800 hover:border-gray-700" : "bg-white border-[#e9ecef] shadow-sm hover:shadow-md hover:border-gray-300";
-                const titleColor = isDark ? "text-white" : "text-black";
-                const reviewColor = isDark ? "text-gray-400" : "text-[#495057]";
-                const tagBg = isDark ? "bg-[#26262b] text-gray-300 border-gray-700" : "bg-[#f1f3f5] text-[#495057] border-[#e9ecef]";
-
-                const tagSection = log.tags.map(t => `<span class="${tagBg} px-2 py-0.5 rounded text-[10px] font-semibold border">${t}</span>`).join('');
-                const dateView = log.end ? `${log.start.replace(/-/g, '/')} - ${log.end.replace(/-/g, '/')}` : log.start.replace(/-/g, '/');
-
-                const card = document.createElement('div');
-                card.className = `${cardBg} rounded-xl overflow-hidden transition duration-200 cursor-pointer flex flex-col border`;
-                card.setAttribute("onclick", `openDetailModal(${log.id})`);
-                
-                card.innerHTML = `
-                    <div class="relative pt-[52%] bg-gray-800 overflow-hidden">
-                        <img src="${log.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500'}" class="absolute inset-0 w-full h-full object-cover">
-                    </div>
-                    <div class="p-4 flex flex-col flex-grow justify-between space-y-2">
-                        <div>
-                            <div class="text-sm font-bold ${titleColor} flex items-center gap-1.5">
-                                <i class="fa-regular fa-file-text text-gray-400 text-xs"></i>
-                                <span class="truncate">${log.title}</span>
-                            </div>
-                            <div class="flex flex-wrap gap-1 mt-1.5">${tagSection}</div>
-                            <div class="text-amber-500 font-medium text-xs mt-1 tracking-tight">${stars}</div>
-                            <p class="text-xs ${reviewColor} line-clamp-2 mt-1 leading-relaxed">${log.review || '작성된 평이 없습니다.'}</p>
-                        </div>
-                        <div class="pt-2 border-t ${isDark ? 'border-gray-800/80' : 'border-[#f1f3f5]'} text-[10px] text-gray-400 flex items-center font-medium">
-                            <i class="fa-regular fa-calendar mr-1"></i>${dateView}
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function openDetailModal(id) {
-            const target = archiveLogs.find(l => l.id === id);
-            if (!target) return;
-
-            document.getElementById('modal-id').value = target.id;
-            document.getElementById('modal-title').innerText = target.title;
-            document.getElementById('modal-type-badge').innerText = target.type;
-            document.getElementById('modal-review').value = target.review;
-            document.getElementById('modal-rating').value = target.rating;
-            document.getElementById('modal-img').src = target.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500';
-            document.getElementById('modal-date-display').innerText = target.start.replace(/-/g, '/');
-
-            applyThemeMode(currentThemeMode);
-            document.getElementById('detail-modal').classList.remove('hidden');
-        }
-
-        function closeDetailModal() {
-            document.getElementById('detail-modal').classList.add('hidden');
-        }
-
-        function submitUpdateLog() {
-            const id = parseInt(document.getElementById('modal-id').value);
-            const target = archiveLogs.find(l => l.id === id);
-            if(target) {
-                target.review = document.getElementById('modal-review').value;
-                target.rating = parseInt(document.getElementById('modal-rating').value);
-                saveAndRefresh();
-                closeDetailModal();
-            }
-        }
-
-        function submitDeleteLog() {
-            const id = parseInt(document.getElementById('modal-id').value);
-            if(confirm("이 미디어 로그 기록을 삭제할까요?")) {
-                archiveLogs = archiveLogs.filter(l => l.id !== id);
-                saveAndRefresh();
-                closeDetailModal();
-            }
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const type = document.getElementById('form-type').value;
-            const title = document.getElementById('form-title').value;
-            const tagsIn = document.getElementById('form-tags').value;
-            const tags = tagsIn ? tagsIn.split(',').map(t => t.trim()) : [type];
-            const start = document.getElementById('form-start').value;
-            const end = document.getElementById('form-end').value;
-            const rating = parseInt(document.getElementById('form-rating').value);
-            const image = document.getElementById('form-image').value;
-            const review = document.getElementById('form-review').value;
-
-            archiveLogs.unshift({ id: Date.now(), type, title, tags, start, end, rating, image, review });
-            saveAndRefresh();
-            document.getElementById('media-form').reset();
-            document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
-            applyThemeMode(currentThemeMode);
-        }
-
-        function saveAndRefresh() {
-            localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
-            renderCards();
-            if (googleAccessToken) {
-                uploadDataToGoogleDrive();
-            }
-        }
-
-        function handleTypeChange() {
-            const bMeta = document.getElementById('book-meta-fields');
-            if(document.getElementById('form-type').value === 'BOOK') bMeta.classList.remove('hidden');
-            else bMeta.classList.add('hidden');
         }
 
         function simulateBookSearch() {
