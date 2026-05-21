@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Media Archive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 부드러운 전환 효과 및 스크롤바 숨기기 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-[#121214] text-gray-200 min-h-screen transition-colors duration-300" id="app-body">
+
+    <header class="border-b border-gray-800 bg-[#1a1a1e] sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <span class="text-xl font-bold tracking-wider text-blue-500"><i class="fa-solid fa-clapperboard mr-2"></i>My Media Archive</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="sync-status" class="text-xs bg-green-900/50 text-green-400 px-2.5 py-1 rounded-full border border-green-700/50 cursor-pointer" onclick="toggleSync()">
+                <i class="fa-solid fa-g mr-1"></i> 동기화 완료
+            </span>
+            <button onclick="openTab('settings')" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-gear"></i></button>
+        </div>
+    </header>
+
+    <div class="max-w-[1400px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6 pb-24 lg:pb-6">
+        
+        <main class="lg:col-span-3 space-y-6">
+            
+            <section id="main-dashboard" class="space-y-6 tab-content">
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#1a1a1e] p-4 rounded-xl border border-gray-800">
+                    <div class="relative w-full md:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-500"></i>
+                        <input type="text" id="search-input" oninput="renderCards()" placeholder="통합 검색 (영화, 책, 드라마...)" class="w-full bg-[#26262b] pl-10 pr-4 py-2.5 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-700">
+                    </div>
+                    <div class="flex space-x-2 overflow-x-auto w-full md:w-auto no-scrollbar py-1">
+                        <button onclick="filterCategory('all')" id="btn-filter-all" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white shrink-0">전체</button>
+                        <button onclick="filterCategory('book')" id="btn-filter-book" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#26262b] text-gray-400 hover:text-white shrink-0">📚 독서</button>
+                        <button onclick="filterCategory('movie')" id="btn-filter-movie" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#26262b] text-gray-400 hover:text-white shrink-0">🎬 영화</button>
+                        <button onclick="filterCategory('drama')" id="btn-filter-drama" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#26262b] text-gray-400 hover:text-white shrink-0">📺 드라마</button>
+                        <button onclick="filterCategory('music')" id="btn-filter-music" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#26262b] text-gray-400 hover:text-white shrink-0">🎵 음악</button>
+                    </div>
+                </div>
+
+                <div id="media-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                    </div>
+            </section>
+
+            <section id="book-search-tab" class="tab-content hidden space-y-4">
+                <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-book mr-2"></i>책 검색 등록</h2>
+                <div class="bg-[#1a1a1e] p-4 rounded-xl border border-gray-800 space-y-4">
+                    <div class="flex gap-2">
+                        <input type="text" id="api-book-search" placeholder="책 제목을 입력 후 검색해 보세요" class="w-full bg-[#26262b] px-4 py-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-700">
+                        <button onclick="simulateBookSearch()" class="bg-blue-600 text-white px-5 py-3 rounded-lg text-sm font-medium hover:bg-blue-700 shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 검색</button>
+                    </div>
+                    <div id="search-results" class="space-y-2 hidden">
+                        <p class="text-xs text-gray-500 font-medium">검색 결과 (가상 API 매칭)</p>
+                        <div onclick="selectBook('프로젝트 헤일메리', '앤디 위어', 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500')" class="flex items-center gap-3 bg-[#26262b] p-3 rounded-lg cursor-pointer hover:border-blue-500 border border-transparent transition">
+                            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500" class="w-10 h-14 object-cover rounded">
+                            <div>
+                                <h4 class="text-sm font-bold text-white">프로젝트 헤일메리</h4>
+                                <p class="text-xs text-gray-400">저자: 앤디 위어 | 출판사: 알에이치코리아</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="stats-tab" class="tab-content hidden space-y-6">
+                <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-chart-simple mr-2"></i>2026 미디어 리포트</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-[#1a1a1e] p-5 rounded-xl border border-gray-800">
+                        <h3 class="text-sm font-medium text-gray-400 mb-4">카테고리별 소비량</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1"><span>🎬 영화 / 드라마</span><span>24편</span></div>
+                                <div class="w-full bg-gray-700 h-2 rounded-full"><div class="bg-red-500 h-2 rounded-full" style="width: 75%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1"><span>📚 독서</span><span>12권</span></div>
+                                <div class="w-full bg-gray-700 h-2 rounded-full"><div class="bg-blue-500 h-2 rounded-full" style="width: 45%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1"><span>🎵 음악</span><span>48곡</span></div>
+                                <div class="w-full bg-gray-700 h-2 rounded-full"><div class="bg-yellow-500 h-2 rounded-full" style="width: 90%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-[#1a1a1e] p-5 rounded-xl border border-gray-800 flex flex-col justify-center">
+                        <h3 class="text-sm font-medium text-gray-400 mb-2">최고의 명작 평가</h3>
+                        <div class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-award text-yellow-500 mr-2"></i>사냥개들2 (DRAMA)</div>
+                        <p class="text-xs text-gray-400">"액션은 최고 수준이며 완주 속도가 가장 빠름."</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="settings-tab" class="tab-content hidden space-y-6">
+                <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-gear mr-2"></i>시스템 설정</h2>
+                
+                <div class="bg-[#1a1a1e] p-5 rounded-xl border border-gray-800 space-y-6">
+                    <div>
+                        <label class="text-sm font-medium text-gray-400 block mb-2">어플리케이션 테마 색상</label>
+                        <div class="flex space-x-3">
+                            <button onclick="changeTheme('#121214', '#1a1a1e')" class="w-8 h-8 rounded-full bg-gray-900 border-2 border-white"></button>
+                            <button onclick="changeTheme('#0b132b', '#1c2541')" class="w-8 h-8 rounded-full bg-indigo-950 border border-gray-700"></button>
+                            <button onclick="changeTheme('#1c1c1c', '#2d2d2d')" class="w-8 h-8 rounded-full bg-neutral-800 border border-gray-700"></button>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-800 pt-4 space-y-3">
+                        <label class="text-sm font-medium text-gray-400 block">데이터 백업 및 관리</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="exportData()" class="bg-[#26262b] text-gray-200 border border-gray-700 px-4 py-2 rounded-lg text-xs hover:bg-gray-700"><i class="fa-solid fa-download mr-1"></i> 데이터 내보내기(JSON)</button>
+                            <label class="bg-[#26262b] text-gray-200 border border-gray-700 px-4 py-2 rounded-lg text-xs hover:bg-gray-700 cursor-pointer">
+                                <i class="fa-solid fa-upload mr-1"></i> 데이터 불러오기
+                                <input type="file" id="import-file" onchange="importData(event)" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-800 pt-4">
+                        <button onclick="shareApp()" class="w-full bg-blue-600/20 text-blue-400 border border-blue-500/30 py-2.5 rounded-lg text-xs font-semibold hover:bg-blue-600/30"><i class="fa-solid fa-share-nodes mr-2"></i>애플리케이션 공유 링크 복사</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <aside class="hidden lg:block lg:col-span-1 space-y-4">
+            <div class="bg-[#1a1a1e] p-5 rounded-xl border border-gray-800 sticky top-20 space-y-4">
+                <h3 class="text-md font-bold text-white flex items-center justify-between">
+                    <span><i class="fa-solid fa-square-plus mr-2 text-blue-500"></i>PC 빠른 등록</span>
+                </h3>
+                
+                <form id="media-form" onsubmit="handleFormSubmit(event)" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block mb-1 text-gray-400">미디어 종류</label>
+                        <select id="form-type" onchange="handleTypeChange()" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2.5 text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="MOVIE">🎬 영화</option>
+                            <option value="DRAMA">📺 드라마</option>
+                            <option value="BOOK">📚 독서</option>
+                            <option value="MUSIC">🎵 음악</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 text-gray-400">콘텐츠 제목</label>
+                        <input type="text" id="form-title" required class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2.5 text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="제목을 입력하세요">
+                    </div>
+
+                    <div id="book-meta-fields" class="hidden space-y-2">
+                        <div>
+                            <label class="block mb-1 text-gray-400">저자 / 출판사</label>
+                            <input type="text" id="form-author" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2.5 text-gray-200 focus:outline-none" placeholder="예: 앤디 위어">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 text-gray-400">플랫폼 / 극장 / 태그</label>
+                        <input type="text" id="form-tags" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2.5 text-gray-200 focus:outline-none" placeholder="콤마(,)로 분리 예: 넷플릭스, 아이맥스">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block mb-1 text-gray-400">시작일 / 관람일</label>
+                            <input type="date" id="form-start" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2 text-gray-200 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-gray-400">종료일 (선택)</label>
+                            <input type="date" id="form-end" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2 text-gray-200 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 text-gray-400">나만의 평점</label>
+                        <select id="form-rating" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2.5 text-yellow-400 font-bold focus:outline-none">
+                            <option value="5">⭐⭐⭐⭐⭐ (5.0)</option>
+                            <option value="4">⭐⭐⭐⭐☆ (4.0)</option>
+                            <option value="3">⭐⭐⭐☆☆ (3.0)</option>
+                            <option value="2">⭐⭐☆☆☆ (2.0)</option>
+                            <option value="1">⭐☆☆☆☆ (1.0)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 text-gray-400">포스터 / 커버 이미지 URL</label>
+                        <input type="url" id="form-image" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2.5 text-gray-200 focus:outline-none" placeholder="https://...">
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 text-gray-400">감상평 / 한줄평</label>
+                        <textarea id="form-review" rows="3" class="w-full bg-[#26262b] border border-gray-700 rounded-lg p-2.5 text-gray-200 focus:outline-none" placeholder="내용을 기록하세요..."></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition text-sm">
+                        <i class="fa-solid fa-check mr-1"></i> 기록하기
+                    </button>
+                </form>
+            </div>
+        </aside>
+    </div>
+
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1e] border-t border-gray-800 grid grid-cols-4 text-center py-2 z-50">
+        <button onclick="openTab('dashboard')" class="nav-btn text-blue-500 flex flex-col items-center justify-center space-y-0.5">
+            <i class="fa-solid fa-house text-lg"></i><span class="text-[10px]">홈</span>
+        </button>
+        <button onclick="openTab('book-search')" class="nav-btn text-gray-400 flex flex-col items-center justify-center space-y-0.5">
+            <i class="fa-solid fa-book-open text-lg"></i><span class="text-[10px]">북 검색</span>
+        </button>
+        <button onclick="openTab('stats')" class="nav-btn text-gray-400 flex flex-col items-center justify-center space-y-0.5">
+            <i class="fa-solid fa-chart-pie text-lg"></i><span class="text-[10px]">통계</span>
+        </button>
+        <button onclick="openTab('settings')" class="nav-btn text-gray-400 flex flex-col items-center justify-center space-y-0.5">
+            <i class="fa-solid fa-sliders text-lg"></i><span class="text-[10px]">설정</span>
+        </button>
+    </nav>
+
+    <button onclick="toggleMobileModal()" class="lg:hidden fixed bottom-16 right-5 bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl z-40 hover:bg-blue-700">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <div id="mobile-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-end lg:hidden">
+        <div class="bg-[#1a1a1e] w-full rounded-t-2xl p-5 max-h-[85vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-md font-bold text-white">미디어 로그 등록</h3>
+                <button onclick="toggleMobileModal()" class="text-gray-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-gray-400">※ 모바일에서는 하단 '북 검색' 탭 또는 PC 모드에서 연동 입력을 권장합니다. 폼을 제출하려면 아래 작성창을 이용하세요.</p>
+            <button onclick="usePcFormInMobile()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-medium text-sm">작성 서식 활성화</button>
+        </div>
+    </div>
+
+    <script>
+        // 초기 가상 데이터 (보내주신 스크린샷 내역 완전 동기화)
+        const defaultData = [
+            { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500' },
+            { id: 2, type: 'DRAMA', title: '레이디두아', tags: ['DRAMA', '넷플릭스', '완주'], rating: 4, review: '명품? No 사치품 !!!', start: '2026-03-27', end: '2026-03-28', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500' },
+            { id: 3, type: 'MOVIE', title: '행복의 나라로', tags: ['MOVIE'], rating: 5, review: '이선균 송영규 두 분 명목을 빕니다.', start: '2026-03-23', end: '', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500' },
+            { id: 4, type: 'BOOK', title: '프로젝트 헤일 메리', tags: ['MOVIE', 'IMAX'], rating: 5, review: '아이맥스 최고', start: '2026-03-21', end: '', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500' }
+        ];
+
+        let mediaLogs = JSON.parse(localStorage.getItem('mediaLogs')) || defaultData;
+        let currentFilter = 'all';
+
+        // 앱 시작점
+        window.onload = function() {
+            renderCards();
+            // 기본 날짜 오늘로 세팅
+            document.getElementById('form-start').valueToDate = new Date();
+        };
+
+        // 데이터 카드 화면 렌더링 함수
+        function renderCards() {
+            const grid = document.getElementById('media-grid');
+            const searchKeyword = document.getElementById('search-input').value.toLowerCase();
+            grid.innerHTML = '';
+
+            const filtered = mediaLogs.filter(item => {
+                const matchesCategory = currentFilter === 'all' || item.type.toLowerCase() === currentFilter;
+                const matchesSearch = item.title.toLowerCase().includes(searchKeyword) || item.review.toLowerCase().includes(searchKeyword);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 text-sm">등록된 기록이 없거나 검색 결과가 없습니다.</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                let stars = '⭐'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
+                let dateStr = item.end ? `${item.start.replace(/-/g,'/')} - ${item.end.replace(/-/g,'/')}` : item.start.replace(/-/g,'/');
+                
+                // 태그 뱃지 생성
+                let tagHtml = item.tags.map(t => `<span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded text-[10px] font-medium border border-gray-700">${t}</span>`).join(' ');
+
+                const card = document.createElement('div');
+                card.className = "bg-[#1a1a1e] rounded-xl overflow-hidden border border-gray-800 shadow-md hover:border-gray-700 transition flex flex-col";
+                card.innerHTML = `
+                    <div class="relative pt-[56.25%] bg-gray-900 overflow-hidden shrink-0">
+                        <img src="${item.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500'}" class="absolute inset-0 w-full h-full object-cover">
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow justify-between space-y-2">
+                        <div>
+                            <div class="flex items-center space-x-1.5 text-sm font-bold text-white mb-1.5">
+                                <i class="fa-regular fa-file-lines text-gray-400 text-xs"></i>
+                                <span class="truncate">${item.title}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mb-2">${tagHtml}</div>
+                            <div class="text-amber-400 text-xs tracking-wider mb-2">${stars}</div>
+                            <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">${item.review || '남긴 코멘트가 없습니다.'}</p>
+                        </div>
+                        <div class="pt-2 border-t border-gray-800/60 flex items-center justify-between text-[11px] text-gray-500">
+                            <span><i class="fa-regular fa-calendar mr-1"></i>${dateStr}</span>
+                            <button onclick="deleteCard(${item.id})" class="text-gray-600 hover:text-red-400 transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 입력 폼 제어 (PC용)
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('form-type').value;
+            const title = document.getElementById('form-title').value;
+            const tagsInput = document.getElementById('form-tags').value;
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()) : [type];
+            const start = document.getElementById('form-start').value || new Date().toISOString().split('T')[0];
+            const end = document.getElementById('form-end').value;
+            const rating = parseInt(document.getElementById('form-rating').value);
+            const image = document.getElementById('form-image').value;
+            const review = document.getElementById('form-review').value;
+
+            const newLog = { id: Date.now(), type, title, tags, start, end, rating, image, review };
+            mediaLogs.unshift(newLog);
+            saveAndRefresh();
+            document.getElementById('media-form').reset();
+        }
+
+        // 데이터 영구 저장 및 리프레시
+        function saveAndRefresh() {
+            localStorage.setItem('mediaLogs', JSON.stringify(mediaLogs));
+            renderCards();
+        }
+
+        // 카드 삭제 기능
+        function deleteCard(id) {
+            if(confirm("이 로그를 정말 삭제하시겠습니까?")) {
+                mediaLogs = mediaLogs.filter(item => item.id !== id);
+                saveAndRefresh();
+            }
+        }
+
+        // 카테고리 필터 변경 스위치
+        function filterCategory(category) {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-[#26262b]', 'text-gray-400');
+            });
+            const activeBtn = document.getElementById(`btn-filter-${category}`);
+            activeBtn.classList.remove('bg-[#26262b]', 'text-gray-400');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+            renderCards();
+        }
+
+        // 책 타입 선택 시 폼 변경 조절
+        function handleTypeChange() {
+            const type = document.getElementById('form-type').value;
+            const bookMeta = document.getElementById('book-meta-fields');
+            if(type === 'BOOK') { bookMeta.classList.remove('hidden'); } 
+            else { bookMeta.classList.add('hidden'); }
+        }
+
+        // 가상 책 검색 API 작동 시뮬레이션 (요청기능 3번)
+        function simulateBookSearch() {
+            const resultBox = document.getElementById('search-results');
+            resultBox.classList.remove('hidden');
+        }
+
+        function selectBook(title, author, img) {
+            // 모바일 검색 시 데이터를 PC 양식 폼으로 전달하여 바인딩 유도
+            document.getElementById('form-type').value = "BOOK";
+            document.getElementById('form-title').value = title;
+            document.getElementById('form-author').value = author;
+            document.getElementById('form-image').value = img;
+            handleTypeChange();
+            alert(`[${title}] 정보가 입력창에 세팅되었습니다. 평점과 날짜를 입력 후 저장해 주세요!`);
+            openTab('dashboard');
+        }
+
+        // 테마 색상 변경 시스템 (요청기능 5번)
+        function changeTheme(bg, cardBg) {
+            document.getElementById('app-body').style.backgroundColor = bg;
+            alert("테마 색상이 실시간 변경되었습니다.");
+        }
+
+        // 데이터 백업 내보내기 (JSON 파일 저장)
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mediaLogs));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `media_archive_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // 백업 데이터 다시 불러오기
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if(Array.isArray(imported)) {
+                        mediaLogs = imported;
+                        saveAndRefresh();
+                        alert("백업 파일 데이터를 정상적으로 불러왔습니다!");
+                    }
+                } catch (err) {
+                    alert("올바른 백업 파일 형식이 아닙니다.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 링크 공유 기능 외부 스크립트 대응
+        function shareApp() {
+            navigator.clipboard.writeText(window.location.href);
+            alert("앱 접속 주소가 클립보드에 복사되었습니다. 친구에게 공유해 보세요!");
+        }
+
+        // 구글 계정 가상 동기화 스위치
+        function toggleSync() {
+            const btn = document.getElementById('sync-status');
+            if(btn.innerText.includes('완료')) {
+                btn.className = "text-xs bg-amber-900/50 text-amber-400 px-2.5 py-1 rounded-full border border-amber-700/50 cursor-pointer";
+                btn.innerHTML = `<i class="fa-solid fa-g mr-1"></i> 동기화 해제됨`;
+            } else {
+                btn.className = "text-xs bg-green-900/50 text-green-400 px-2.5 py-1 rounded-full border border-green-700/50 cursor-pointer";
+                btn.innerHTML = `<i class="fa-solid fa-g mr-1"></i> 동기화 완료`;
+            }
+        }
+
+        // 탭 페이지 브라우저 뷰 라우팅 체인지 (모바일 최적화 대응용)
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${tabName}-tab` ? `${tabName}-tab` : 'main-dashboard').classList.remove('hidden');
+            
+            // 네비게이션 버튼 색상 활성화 초기화
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-blue-500');
+                btn.classList.add('text-gray-400');
+            });
+        }
+
+        // 모바일 레이어 팝업 온오프 제어
+        function toggleMobileModal() {
+            const modal = document.getElementById('mobile-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function usePcFormInMobile() {
+            toggleMobileModal();
+            alert("우측 또는 하단의 등록 양식을 확인해 주세요.");
+        }
+    </script>
+</body>
+</html>
