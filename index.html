@@ -24,19 +24,17 @@
         }
     </style>
 </head>
-<!-- 기본 클래스는 라이트모드 상태로 시작하며, 자바스크립트로 제어됩니다 -->
 <body id="app-body" class="bg-[#f8f9fa] text-[#212529] min-h-screen pb-24 lg:pb-6">
 
     <!-- 1. 상단 헤더 내비게이션 -->
     <header id="app-header" class="border-b border-[#e9ecef] bg-white sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm">
-        <!-- 로고 클릭 시 대시보드로 이동 -->
         <div onclick="openTab('dashboard')" class="flex items-center space-x-2 cursor-pointer group select-none">
             <span class="text-xl font-extrabold tracking-tight text-blue-600 flex items-center">
                 <i class="fa-solid fa-box-archive mr-2 text-blue-500 group-hover:scale-105 transition-transform"></i>My Archive
             </span>
         </div>
         <div class="flex items-center space-x-4">
-            <!-- 🌗 다크/라이트 토글 스위치 버튼 (테마 색상 관리 최적화) -->
+            <!-- 🌗 다크/라이트 토글 스위치 버튼 -->
             <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white text-lg p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                 <i class="fa-solid fa-moon"></i>
             </button>
@@ -48,7 +46,7 @@
         </div>
     </header>
 
-    <!-- 메인 레이아웃 (PC: 좌측 메인 / 우측 빠른 등록 폼) -->
+    <!-- 메인 레이아웃 -->
     <div class="max-w-[1400px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
         
         <!-- ================= [메인 뷰 스페이스] ================= -->
@@ -60,15 +58,15 @@
                 <div id="search-filter-box" class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl border border-[#e9ecef] shadow-sm">
                     <div class="relative w-full md:w-80">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-sm"></i>
-                        <input type="text" id="search-input" oninput="renderCards()" placeholder="기록된 모든 미디어 검색..." class="w-full bg-[#f1f3f5] dark:bg-[#26262b] pl-10 pr-4 py-2.5 rounded-lg text-sm text-[#495057] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent transition">
+                        <input type="text" id="search-input" oninput="renderCards()" placeholder="기록된 모든 미디어 검색..." class="w-full bg-[#f1f3f5] dark:bg-[#262930] pl-10 pr-4 py-2.5 rounded-lg text-sm text-[#495057] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent transition">
                     </div>
                     <!-- 필터 가로 스크롤 영역 -->
                     <div class="flex space-x-1.5 overflow-x-auto w-full md:w-auto no-scrollbar py-1">
                         <button onclick="filterCategory('all')" id="btn-filter-all" class="filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white shrink-0 shadow-sm transition">전체</button>
-                        <button onclick="filterCategory('book')" id="btn-filter-book" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#26262b] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">📚 독서</button>
-                        <button onclick="filterCategory('movie')" id="btn-filter-movie" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#26262b] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">🎬 영화</button>
-                        <button onclick="filterCategory('drama')" id="btn-filter-drama" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#26262b] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">📺 드라마</button>
-                        <button onclick="filterCategory('music')" id="btn-filter-music" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#26262b] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">🎵 음악</button>
+                        <button onclick="filterCategory('book')" id="btn-filter-book" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#262930] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">📚 독서</button>
+                        <button onclick="filterCategory('movie')" id="btn-filter-movie" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#262930] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">🎬 영화</button>
+                        <button onclick="filterCategory('drama')" id="btn-filter-drama" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#262930] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">📺 드라마</button>
+                        <button onclick="filterCategory('music')" id="btn-filter-music" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] dark:bg-[#262930] dark:text-gray-400 dark:hover:text-white hover:bg-[#e9ecef] shrink-0 transition">🎵 음악</button>
                     </div>
                 </div>
 
@@ -83,11 +81,11 @@
                 <div id="book-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4">
                     <h2 id="book-title-txt" class="text-lg font-bold text-[#212529]"><i class="fa-solid fa-book text-blue-500 mr-2"></i>독서 자동 기록 검색</h2>
                     <div class="flex gap-2">
-                        <input type="text" id="api-book-search" placeholder="책 제목, 저자명을 입력해 보세요..." class="w-full bg-[#f1f3f5] dark:bg-[#26262b] text-gray-800 dark:text-gray-200 px-4 py-3 rounded-lg text-sm focus:outline-none border border-transparent focus:border-blue-500">
+                        <input type="text" id="api-book-search" placeholder="책 제목, 저자명을 입력해 보세요..." class="w-full bg-[#f1f3f5] dark:bg-[#262930] text-gray-800 dark:text-gray-200 px-4 py-3 rounded-lg text-sm focus:outline-none border border-transparent focus:border-blue-500">
                         <button onclick="simulateBookSearch()" class="bg-blue-600 text-white px-5 py-3 rounded-lg text-sm font-semibold hover:bg-blue-700 shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 검색</button>
                     </div>
                     <div id="search-results" class="space-y-2 hidden">
-                        <div onclick="selectBook('프로젝트 헤일메리', '앤디 위어', 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500')" class="flex items-center gap-4 bg-[#f8f9fa] dark:bg-[#26262b] p-3 rounded-xl cursor-pointer hover:border-blue-500 border border-transparent transition shadow-sm">
+                        <div onclick="selectBook('프로젝트 헤일메리', '앤디 위어', 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500')" class="flex items-center gap-4 bg-[#f8f9fa] dark:bg-[#262930] p-3 rounded-xl cursor-pointer hover:border-blue-500 border border-transparent transition shadow-sm">
                             <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500" class="w-10 h-14 object-cover rounded shadow-sm">
                             <div>
                                 <h4 class="text-sm font-bold text-black dark:text-white">프로젝트 헤일메리</h4>
@@ -116,7 +114,7 @@
                 <div id="settings-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4">
                     <h2 id="settings-title-txt" class="text-lg font-bold"><i class="fa-solid fa-sliders text-blue-500 mr-2"></i>시스템 옵션</h2>
                     <div class="flex flex-wrap gap-2 pt-2">
-                        <button onclick="exportData()" class="bg-white dark:bg-[#26262b] text-[#495057] dark:text-gray-200 border border-[#ced4da] dark:border-gray-700 px-4 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#f1f3f5] dark:hover:bg-gray-700 transition"><i class="fa-solid fa-file-export mr-1"></i> 데이터 내보내기 (JSON)</button>
+                        <button onclick="exportData()" class="bg-white dark:bg-[#262930] text-[#495057] dark:text-gray-200 border border-[#ced4da] dark:border-gray-700 px-4 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#f1f3f5] dark:hover:bg-gray-700 transition"><i class="fa-solid fa-file-export mr-1"></i> 데이터 내보내기 (JSON)</button>
                         <button onclick="shareApp()" class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-4 py-2.5 rounded-lg text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"><i class="fa-solid fa-share-nodes mr-1"></i>앱 주소 공유</button>
                     </div>
                 </div>
@@ -130,8 +128,8 @@
                 
                 <form id="media-form" onsubmit="handleFormSubmit(event)" class="space-y-3.5 text-xs">
                     <div>
-                        <label class="block mb-1 text-gray-500 font-semibold">구분</label>
-                        <select id="form-type" onchange="handleTypeChange()" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2.5 text-[#495057] dark:text-gray-200 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                        <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">구분</label>
+                        <select id="form-type" onchange="handleTypeChange()" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2.5 text-[#495057] dark:text-gray-200 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
                             <option value="MOVIE">🎬 영화</option>
                             <option value="DRAMA">📺 드라마</option>
                             <option value="BOOK">📚 독서</option>
@@ -139,30 +137,30 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block mb-1 text-gray-500 font-semibold">콘텐츠 제목</label>
-                        <input type="text" id="form-title" required class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2.5 text-sm text-[#495057] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="제목 입력">
+                        <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">콘텐츠 제목</label>
+                        <input type="text" id="form-title" required class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2.5 text-sm text-[#495057] dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="제목 입력">
                     </div>
                     <div id="book-meta-fields" class="hidden">
-                        <label class="block mb-1 text-gray-500 font-semibold">저자 / 출판사</label>
-                        <input type="text" id="form-author" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="예: 앤디 위어">
+                        <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">저자 / 출판사</label>
+                        <input type="text" id="form-author" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="예: 앤디 위어">
                     </div>
                     <div>
-                        <label class="block mb-1 text-gray-500 font-semibold">플랫폼 / 커스텀 태그</label>
-                        <input type="text" id="form-tags" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="쉼표로 구분 (예: 넷플릭스, 아이맥스)">
+                        <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">플랫폼 / 커스텀 태그</label>
+                        <input type="text" id="form-tags" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="쉼표로 구분 (예: 넷플릭스, 아이맥스)">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block mb-1 text-gray-500 font-semibold">시작(관람)일</label>
-                            <input type="date" id="form-start" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2 focus:outline-none text-[#495057] dark:text-gray-200">
+                            <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">시작(관람)일</label>
+                            <input type="date" id="form-start" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2 focus:outline-none text-[#495057] dark:text-gray-200">
                         </div>
                         <div>
-                            <label class="block mb-1 text-gray-500 font-semibold">종료일</label>
-                            <input type="date" id="form-end" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2 focus:outline-none text-[#495057] dark:text-gray-200">
+                            <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">종료일</label>
+                            <input type="date" id="form-end" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2 focus:outline-none text-[#495057] dark:text-gray-200">
                         </div>
                     </div>
                     <div>
-                        <label class="block mb-1 text-gray-500 font-semibold">평점</label>
-                        <select id="form-rating" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2.5 text-amber-500 font-bold focus:outline-none">
+                        <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">평점</label>
+                        <select id="form-rating" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2.5 text-amber-500 font-bold focus:outline-none">
                             <option value="5">⭐⭐⭐⭐⭐ (5.0)</option>
                             <option value="4">⭐⭐⭐⭐☆ (4.0)</option>
                             <option value="3">⭐⭐⭐☆☆ (3.0)</option>
@@ -171,12 +169,12 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block mb-1 text-gray-500 font-semibold">커버 이미지 웹 주소 (URL)</label>
-                        <input type="url" id="form-image" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="https://...">
+                        <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">커버 이미지 웹 주소 (URL)</label>
+                        <input type="url" id="form-image" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="https://...">
                     </div>
                     <div>
-                        <label class="block mb-1 text-gray-500 font-semibold">한줄평 / 감상 기록</label>
-                        <textarea id="form-review" rows="3" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="기록하고 싶은 감상을 작성하세요..."></textarea>
+                        <label class="block mb-1 text-gray-500 dark:text-gray-400 font-semibold">한줄평 / 감상 기록</label>
+                        <textarea id="form-review" rows="3" class="w-full bg-[#f1f3f5] dark:bg-[#262930] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057] dark:text-gray-200" placeholder="기록하고 싶은 감상을 작성하세요..."></textarea>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition text-sm shadow-sm">
                         로그 저장하기
@@ -202,11 +200,11 @@
         </button>
     </nav>
 
-    <!-- ================= [3. 미디어 세부 페이지 모달 윈도우 (수정/삭제 가능)] ================= -->
+    <!-- ================= [3. 미디어 세부 페이지 모달 윈도우] ================= -->
     <div id="detail-modal" class="fixed inset-0 bg-black/50 items-center justify-center z-50 p-4 hidden flex">
         <div id="modal-card-box" class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[#e9ecef] flex flex-col transition-colors duration-150">
             <!-- 상세 상단 이미지 헤더 -->
-            <div class="relative h-48 bg-[#f1f3f5] dark:bg-[#26262b] overflow-hidden">
+            <div class="relative h-48 bg-[#f1f3f5] dark:bg-[#262930] overflow-hidden">
                 <img id="modal-img" src="" class="w-full h-full object-cover">
                 <button onclick="closeDetailModal()" class="absolute top-3 right-3 bg-black/40 hover:bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -222,12 +220,12 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-gray-400 font-semibold mb-1">한줄평 수정</label>
-                        <textarea id="modal-review" rows="3" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] text-[#495057] dark:text-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 border border-transparent"></textarea>
+                        <textarea id="modal-review" rows="3" class="w-full bg-[#f1f3f5] dark:bg-[#262930] text-[#495057] dark:text-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 border border-transparent"></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-gray-400 font-semibold mb-1">평점 수정</label>
-                            <select id="modal-rating" class="w-full bg-[#f1f3f5] dark:bg-[#26262b] p-2 rounded-lg font-bold text-amber-500 text-sm focus:outline-none">
+                            <select id="modal-rating" class="w-full bg-[#f1f3f5] dark:bg-[#262930] p-2 rounded-lg font-bold text-amber-500 text-sm focus:outline-none">
                                 <option value="5">⭐⭐⭐⭐⭐</option>
                                 <option value="4">⭐⭐⭐⭐☆</option>
                                 <option value="3">⭐⭐⭐☆☆</option>
@@ -237,7 +235,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-400 font-semibold mb-1">기록일 확인</label>
-                            <div id="modal-date-display" class="bg-[#f1f3f5] dark:bg-[#26262b] p-2 rounded-lg text-gray-600 dark:text-gray-300 font-medium text-center text-sm">2026/05/21</div>
+                            <div id="modal-date-display" class="bg-[#f1f3f5] dark:bg-[#262930] p-2 rounded-lg text-gray-600 dark:text-gray-300 font-medium text-center text-sm">2026/05/21</div>
                         </div>
                     </div>
                 </div>
@@ -253,9 +251,8 @@
 
     <!-- ================= [엔진 및 데이터 연동 자바스크립트 스크립트] ================= -->
     <script>
-        // 초기 예시 데이터 완벽 매칭 세팅
         const defaultArchive = [
-            { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500' },
+            { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500' },
             { id: 2, type: 'DRAMA', title: '레이디두아', tags: ['DRAMA', '넷플릭스', '완주'], rating: 4, review: '명품? No 사치품 !!!', start: '2026-03-27', end: '2026-03-28', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500' },
             { id: 3, type: 'MOVIE', title: '행복의 나라로', tags: ['MOVIE'], rating: 5, review: '이선균 송영규 두 분 명목을 빕니다.', start: '2026-03-23', end: '', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500' },
             { id: 4, type: 'BOOK', title: '프로젝트 헤일 메리', tags: ['MOVIE', 'IMAX'], rating: 5, review: '아이맥스 최고', start: '2026-03-21', end: '', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500' }
@@ -263,7 +260,6 @@
 
         let archiveLogs = JSON.parse(localStorage.getItem('archiveLogs')) || defaultArchive;
         let currentCategory = 'all';
-        // 모드 상태 스위치 (기본값: 라이트모드 'light')
         let currentThemeMode = localStorage.getItem('themeMode') || 'light';
 
         window.onload = function() {
@@ -272,7 +268,6 @@
             document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
         };
 
-        // 🌗 테마 제어 메인 코어 함수 (요청하신 완벽한 스위칭 구현)
         function toggleThemeMode() {
             currentThemeMode = (currentThemeMode === 'light') ? 'dark' : 'light';
             localStorage.setItem('themeMode', currentThemeMode);
@@ -296,7 +291,6 @@
             const formTitle = document.getElementById('form-title-txt');
 
             if (mode === 'dark') {
-                // 첫 스크린샷과 동일한 고품격 딥 다크 모드 톤 바인딩
                 body.className = "bg-[#121214] text-gray-200 min-h-screen pb-24 lg:pb-6";
                 header.className = "border-b border-gray-800 bg-[#1a1a1e] sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm";
                 searchFilterBox.className = "flex flex-col md:flex-row gap-4 items-center justify-between bg-[#1a1a1e] p-4 rounded-xl border border-gray-800 shadow-sm";
@@ -307,14 +301,12 @@
                 if(nav) nav.className = "lg:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1e] border-t border-gray-800 grid grid-cols-4 text-center py-2.5 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.3)]";
                 if(modalBox) modalBox.className = "bg-[#1a1a1e] w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-gray-800 flex flex-col transition-colors duration-150";
                 
-                // 텍스트 색상 및 아이콘 스위칭
                 if(bookTitle) bookTitle.className = "text-lg font-bold text-white";
                 if(statsTitle) statsTitle.className = "text-lg font-bold text-white mb-4";
                 if(settingsTitle) settingsTitle.className = "text-lg font-bold text-white";
                 if(formTitle) formTitle.className = "text-sm font-bold text-white flex items-center";
                 toggleBtn.innerHTML = `<i class="fa-solid fa-sun text-amber-400"></i>`;
             } else {
-                // 만족하셨던 정갈한 세련된 라이트 모드 톤 바인딩
                 body.className = "bg-[#f8f9fa] text-[#212529] min-h-screen pb-24 lg:pb-6";
                 header.className = "border-b border-[#e9ecef] bg-white sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm";
                 searchFilterBox.className = "flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl border border-[#e9ecef] shadow-sm";
@@ -334,7 +326,6 @@
             renderCards();
         }
 
-        // 미디어 카드 렌더링
         function renderCards() {
             const grid = document.getElementById('media-grid');
             const keyword = document.getElementById('search-input').value.toLowerCase();
@@ -355,8 +346,6 @@
 
             items.forEach(log => {
                 const stars = '★'.repeat(log.rating) + '☆'.repeat(5 - log.rating);
-                
-                // 테마 모드에 대응한 동적 카드 바인딩
                 const isDark = currentThemeMode === 'dark';
                 const cardBg = isDark ? "bg-[#1a1a1e] border-gray-800 hover:border-gray-700" : "bg-white border-[#e9ecef] shadow-sm hover:shadow-md hover:border-gray-300";
                 const titleColor = isDark ? "text-white" : "text-black";
@@ -393,7 +382,6 @@
             });
         }
 
-        // 세부 페이지 모달 열기 함수
         function openDetailModal(id) {
             const target = archiveLogs.find(l => l.id === id);
             if (!target) return;
@@ -413,7 +401,6 @@
             document.getElementById('detail-modal').classList.add('hidden');
         }
 
-        // 모달 내부 수정사항 저장
         function submitUpdateLog() {
             const id = parseInt(document.getElementById('modal-id').value);
             const target = archiveLogs.find(l => l.id === id);
@@ -425,7 +412,6 @@
             }
         }
 
-        // 모달 내부 삭제 기능
         function submitDeleteLog() {
             const id = parseInt(document.getElementById('modal-id').value);
             if(confirm("이 미디어 로그 기록을 삭제할까요?")) {
@@ -435,7 +421,6 @@
             }
         }
 
-        // 신규 데이터 추가 폼 핸들러
         function handleFormSubmit(e) {
             e.preventDefault();
             const type = document.getElementById('form-type').value;
@@ -459,15 +444,14 @@
             renderCards();
         }
 
-        // 카테고리 스위칭 필터링
         function filterCategory(cat) {
             currentCategory = cat;
             document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
-                b.classList.add('bg-[#f1f3f5]', 'dark:bg-[#26262b]', 'text-[#495057]', 'dark:text-gray-400');
+                b.classList.add('bg-[#f1f3f5]', 'dark:bg-[#262930]', 'text-[#495057]', 'dark:text-gray-400');
             });
             const active = document.getElementById(`btn-filter-${cat}`);
-            active.classList.remove('bg-[#f1f3f5]', 'dark:bg-[#26262b]', 'text-[#495057]', 'dark:text-gray-400');
+            active.classList.remove('bg-[#f1f3f5]', 'dark:bg-[#262930]', 'text-[#495057]', 'dark:text-gray-400');
             active.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
             renderCards();
         }
