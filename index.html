@@ -4,15 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Archive</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome 아이콘 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 구글 Identity Services (GIS) 라이브러리 -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- 구글 API 클라이언트 라이브러리 -->
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <!-- Pretendard 폰트 최우선 적용 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <style>
         body, input, select, textarea, button {
@@ -27,43 +22,44 @@
 </head>
 <body id="app-body" class="bg-[#f8f9fa] text-[#212529] min-h-screen pb-24 lg:pb-6">
 
-    <!-- 1. 상단 헤더 내비게이션 -->
     <header id="app-header" class="border-b border-[#e9ecef] bg-white sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm">
         <div onclick="openTab('dashboard')" class="flex items-center space-x-2 cursor-pointer group select-none">
             <span class="text-xl font-extrabold tracking-tight text-blue-600 flex items-center">
                 <i class="fa-solid fa-box-archive mr-2 text-blue-500 group-hover:scale-105 transition-transform"></i>My Archive
             </span>
         </div>
-        <div class="flex items-center space-x-4">
-            <!-- 🌗 다크/라이트 토글 스위치 버튼 -->
-            <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="text-gray-500 hover:text-gray-900 text-lg p-1.5 rounded-lg hover:bg-gray-100 transition">
+        <div class="flex items-center space-x-2 lg:space-x-3">
+            <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="text-gray-500 hover:text-gray-900 text-lg p-1.5 rounded-lg hover:bg-gray-100 transition mr-1">
                 <i class="fa-solid fa-moon"></i>
             </button>
-            <!-- 🔄 구글 드라이브 연동 상태 토글 버튼 -->
-            <button onclick="handleSyncButtonClick()" id="sync-status" class="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm">
-                <i class="fa-solid fa-circle-notch fa-spin hidden" id="sync-spinner"></i>
-                <i class="fa-brands fa-google" id="sync-icon"></i>
-                <span id="sync-text">구글 계정 연동</span>
-            </button>
-            <button onclick="openTab('settings')" class="text-gray-500 hover:text-gray-900 text-lg transition"><i class="fa-solid fa-gear"></i></button>
+            
+            <div id="google-btn-group" class="flex items-center gap-1.5">
+                <button onclick="handleSyncButtonClick()" id="sync-status" class="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm">
+                    <i class="fa-solid fa-circle-notch fa-spin hidden" id="sync-spinner"></i>
+                    <i class="fa-brands fa-google" id="sync-icon"></i>
+                    <span id="sync-text">구글 계정 연동</span>
+                </button>
+                
+                <button onclick="manualBackupToDrive()" id="manual-backup-btn" class="hidden text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full font-semibold cursor-pointer flex items-center gap-1 transition shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>구글에 백업하기</span>
+                </button>
+            </div>
+            
+            <button onclick="openTab('settings')" class="text-gray-500 hover:text-gray-900 text-lg transition ml-1"><i class="fa-solid fa-gear"></i></button>
         </div>
     </header>
 
-    <!-- 메인 레이아웃 -->
     <div class="max-w-[1400px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        <!-- ================= [메인 뷰 스페이스] ================= -->
         <main class="lg:col-span-3 space-y-6">
             
-            <!-- [메인 대시보드 탭] -->
             <section id="main-dashboard" class="space-y-6 tab-content">
-                <!-- 상단 필터 및 검색바 컴포넌트 -->
                 <div id="search-filter-box" class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl border border-[#e9ecef] shadow-sm">
                     <div class="relative w-full md:w-80">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-sm"></i>
                         <input type="text" id="search-input" oninput="renderCards()" placeholder="기록된 모든 미디어 검색..." class="w-full bg-[#f1f3f5] pl-10 pr-4 py-2.5 rounded-lg text-sm text-[#495057] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent transition">
                     </div>
-                    <!-- 필터 가로 스크롤 영역 (세분화 반영) -->
                     <div class="flex space-x-1.5 overflow-x-auto w-full md:w-auto no-scrollbar py-1">
                         <button onclick="filterCategory('all')" id="btn-filter-all" class="filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white shrink-0 shadow-sm transition">전체</button>
                         <button onclick="filterCategory('book')" id="btn-filter-book" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">📚 독서</button>
@@ -73,13 +69,10 @@
                     </div>
                 </div>
 
-                <!-- 아카이브 미디어 그리드 -->
                 <div id="media-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                    <!-- 자바스크립트로 카드가 바인딩됩니다 -->
-                </div>
+                    </div>
             </section>
 
-            <!-- [📚 책 검색 탭] -->
             <section id="book-search-tab" class="tab-content hidden space-y-4">
                 <div id="book-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4">
                     <h2 id="book-title-txt" class="text-lg font-bold text-[#212529]">📚 독서 자동 기록 검색</h2>
@@ -99,7 +92,6 @@
                 </div>
             </section>
 
-            <!-- [📊 통계 리포트 탭] -->
             <section id="stats-tab" class="tab-content hidden space-y-4">
                 <div id="stats-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm">
                     <h2 id="stats-title-txt" class="text-lg font-bold mb-4">📊 기록 분석 통계</h2>
@@ -112,7 +104,6 @@
                 </div>
             </section>
 
-            <!-- [⚙️ 시스템 설정 탭] -->
             <section id="settings-tab" class="tab-content hidden space-y-4">
                 <div id="settings-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4">
                     <h2 id="settings-title-txt" class="text-lg font-bold">⚙️ 시스템 옵션</h2>
@@ -124,7 +115,6 @@
             </section>
         </main>
 
-        <!-- ================= [오른쪽 고정 사이드바 - PC 퀵 입력 폼] ================= -->
         <aside class="hidden lg:block lg:col-span-1">
             <div id="form-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm sticky top-24 space-y-4">
                 <h3 id="form-title-txt" class="text-sm font-bold text-gray-800 flex items-center"><i class="fa-solid fa-pen-to-square text-blue-500 mr-2"></i>새 미디어 기록</h3>
@@ -148,9 +138,8 @@
                         <input type="text" id="form-author" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057]" placeholder="예: 앤디 위어">
                     </div>
                     
-                    <!-- 📊 3. 신규 동적 진행률 트래킹 컨테이너 스펙 추가 영역 -->
-                    <div id="progress-tracking-box" class="hidden p-3 rounded-lg border border-gray-200/60 dark:border-gray-700/60 space-y-3">
-                        <div class="flex items-center justify-between font-semibold text-gray-500 dark:text-gray-400">
+                    <div id="progress-tracking-box" class="hidden p-3 rounded-lg border border-gray-200/60 space-y-3">
+                        <div class="flex items-center justify-between font-semibold text-gray-500">
                             <span id="progress-lbl-title">콘텐츠 트래커</span>
                             <span id="progress-live-percent" class="text-blue-500 font-bold">0%</span>
                         </div>
@@ -165,7 +154,7 @@
                             </div>
                         </div>
                         <div>
-                            <input type="range" id="form-progress-range" min="0" max="100" value="0" oninput="syncProgressInputVal(); calculateLivePercent();" class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            <input type="range" id="form-progress-range" min="0" max="100" value="0" oninput="syncProgressInputVal(); calculateLivePercent();" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                         </div>
                     </div>
 
@@ -209,7 +198,6 @@
         </aside>
     </div>
 
-    <!-- 📱 모바일 하단 내비게이션 바 -->
     <nav id="app-nav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#e9ecef] grid grid-cols-4 text-center py-2.5 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
         <button onclick="openTab('dashboard')" class="nav-btn text-blue-600 flex flex-col items-center justify-center space-y-1">
             <i class="fa-solid fa-chart-simple text-lg"></i><span class="text-[10px] font-bold">대시보드</span>
@@ -225,7 +213,6 @@
         </button>
     </nav>
 
-    <!-- ================= [3. 미디어 세부 페이지 모달 윈도우] ================= -->
     <div id="detail-modal" class="fixed inset-0 bg-black/50 items-center justify-center z-50 p-4 hidden flex">
         <div id="modal-card-box" class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[#e9ecef] flex flex-col transition-colors duration-150">
             <div class="relative h-48 bg-[#f1f3f5] overflow-hidden">
@@ -240,15 +227,14 @@
                     <h3 id="modal-title" class="text-base font-bold text-[#212529] mt-1.5">콘텐츠 명</h3>
                 </div>
                 
-                <!-- 📊 모달 내부 상세 트래킹 제어 및 수정 폼 주입 -->
-                <div id="modal-progress-box" class="hidden p-3 rounded-lg bg-gray-50 dark:bg-[#26262b] space-y-2">
+                <div id="modal-progress-box" class="hidden p-3 rounded-lg bg-gray-50 space-y-2">
                     <div class="flex justify-between font-semibold text-gray-400">
                         <span id="modal-progress-lbl">현재 진행률</span>
                         <span id="modal-live-percent" class="text-blue-500 font-bold">0%</span>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="number" id="modal-progress-total" oninput="calculateModalLivePercent();" class="bg-white dark:bg-[#1a1a1e] p-2 rounded text-center text-sm focus:outline-none">
-                        <input type="number" id="modal-progress-current" oninput="calculateModalLivePercent();" class="bg-white dark:bg-[#1a1a1e] p-2 rounded text-center text-sm focus:outline-none">
+                        <input type="number" id="modal-progress-total" oninput="calculateModalLivePercent();" class="bg-white p-2 rounded text-center text-sm focus:outline-none">
+                        <input type="number" id="modal-progress-current" oninput="calculateModalLivePercent();" class="bg-white p-2 rounded text-center text-sm focus:outline-none">
                     </div>
                 </div>
 
@@ -270,7 +256,7 @@
                         </div>
                         <div>
                             <label id="lbl-modal-date" class="block text-gray-400 font-semibold mb-1">기록일 확인</label>
-                            <div id="modal-date-display" class="bg-[#f1f3f5] p-2 rounded-lg text-gray-600 font-medium text-center text-sm">2026/05/21</div>
+                            <div id="modal-date-display" class="bg-[#f1f3f5] p-2 rounded-lg text-gray-600 font-medium text-center text-sm"></div>
                         </div>
                     </div>
                 </div>
@@ -283,7 +269,6 @@
         </div>
     </div>
 
-    <!-- ================= [엔진 및 데이터 연동 자바스크립트 스크립트] ================= -->
     <script>
         const CLIENT_ID = '148691412107-od4tsqpl11hvm4sbajuku7t1dh8l1p23.apps.googleusercontent.com';
         const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
@@ -295,7 +280,6 @@
         let googleAccessToken = null;
         let driveFileId = null;
 
-        // 원본 배열 데이터에 신규 트래킹 프로퍼티 스펙 보강 동기화
         const defaultArchive = [
             { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500', totalUnit: 8, currentUnit: 8 },
             { id: 2, type: 'DRAMA', title: '레이디두아', tags: ['DRAMA', '넷플릭스', '완주'], rating: 4, review: '명품? No 사치품 !!!', start: '2026-03-27', end: '2026-03-28', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500', totalUnit: 12, currentUnit: 6 },
@@ -314,10 +298,9 @@
             
             gapi.load('client', initGapiClient);
             initHasClient();
-            handleTypeChange(); // 초기 입력 트래커 바 상태 정렬
+            handleTypeChange();
         };
 
-        /* ================= [구글 클라우드 동기화 코어 백엔드 모듈] ================= */
         function initGapiClient() {
             gapi.client.init({
                 discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
@@ -368,6 +351,16 @@
             }
         }
 
+        // ☁️ 명시적 수동 백업 처리기 함수
+        function manualBackupToDrive() {
+            if (!googleAccessToken) {
+                alert("구글 연동이 완료되지 않았습니다.");
+                return;
+            }
+            showSyncStatus('loading', '구글 드라이브에 강제 백업 중...');
+            uploadDataToGoogleDrive(false, true);
+        }
+
         function loadDataFromGoogleDrive() {
             gapi.client.setToken({ access_token: googleAccessToken });
             gapi.client.drive.files.list({
@@ -385,10 +378,15 @@
                         if (res.result && Array.isArray(res.result)) {
                             const cloudData = res.result;
                             const localMap = new Map(archiveLogs.map(item => [item.id, item]));
+                            
+                            // 양방향 머지 후 클라우드 역반영 기믹 적용
                             cloudData.forEach(item => localMap.set(item.id, item));
                             archiveLogs = Array.from(localMap.values());
-                            saveAndRefresh();
-                            showSyncStatus('success', '구글 로그아웃');
+                            localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
+                            renderCards();
+                            
+                            // 로그인 성공 완료 시점에 누락 없이 클라우드로 최신 스냅샷 업로드
+                            uploadDataToGoogleDrive(false, false);
                         } else {
                             showSyncStatus('success', '구글 로그아웃');
                         }
@@ -399,7 +397,7 @@
                         localStorage.removeItem('googleToken');
                     });
                 } else {
-                    uploadDataToGoogleDrive(true);
+                    uploadDataToGoogleDrive(true, false);
                 }
             }).catch(err => {
                 console.error(err);
@@ -407,7 +405,7 @@
             });
         }
 
-        function uploadDataToGoogleDrive(isFirstCreation = false) {
+        function uploadDataToGoogleDrive(isFirstCreation = false, isManualAlert = false) {
             if (!googleAccessToken) return;
             gapi.client.setToken({ access_token: googleAccessToken });
 
@@ -440,6 +438,7 @@
                 }).then(res => {
                     driveFileId = res.result.id;
                     showSyncStatus('success', '구글 로그아웃');
+                    if (isManualAlert) alert("구글 드라이브에 안전하게 첫 백업 아카이브 공간이 생성 및 저장되었습니다!");
                 }).catch(err => console.error(err));
             } else {
                 gapi.client.request({
@@ -450,6 +449,7 @@
                     body: multipartRequestBody
                 }).then(() => {
                     showSyncStatus('success', '구글 로그아웃');
+                    if (isManualAlert) alert("현재 로컬 대시보드의 모든 데이터가 구글 드라이브 클라우드로 완벽하게 백업 완료되었습니다!");
                 }).catch(err => console.error(err));
             }
         }
@@ -459,16 +459,18 @@
             const icon = document.getElementById('sync-icon');
             const spinner = document.getElementById('sync-spinner');
             const txt = document.getElementById('sync-text');
+            const manualBtn = document.getElementById('manual-backup-btn');
 
             spinner.classList.add('hidden');
             icon.classList.remove('hidden', 'text-gray-500', 'text-gray-400', 'text-blue-500', 'text-emerald-500', 'text-amber-500', 'fa-brands', 'fa-solid', 'fa-google', 'fa-triangle-exclamation');
             txt.innerText = message;
 
             if (type === 'success') {
-                btn.className = "text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900/50 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200";
+                btn.className = "text-xs bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full border border-emerald-200 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200";
                 icon.className = "fa-brands fa-google text-emerald-500";
+                if(manualBtn) manualBtn.classList.remove('hidden');
             } else if (type === 'loading') {
-                btn.className = "text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-900/50 font-semibold flex items-center gap-1.5 transition shadow-sm";
+                btn.className = "text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full border border-blue-200 font-semibold flex items-center gap-1.5 transition shadow-sm";
                 icon.className = "hidden";
                 spinner.classList.remove('hidden');
             } else if (type === 'unlinked') {
@@ -477,15 +479,13 @@
                     ? "text-xs bg-[#262930] text-gray-300 px-3 py-1.5 rounded-full border border-transparent font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm hover:bg-[#31353e]"
                     : "text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm hover:bg-gray-200";
                 icon.className = "fa-brands fa-google " + (isDark ? 'text-gray-400' : 'text-gray-500');
+                if(manualBtn) manualBtn.classList.add('hidden');
             } else {
-                btn.className = "text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-900/50 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm";
+                btn.className = "text-xs bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full border border-amber-200 font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm";
                 icon.className = "fa-solid fa-triangle-exclamation text-amber-500";
             }
         }
 
-        /* ================= [프론트엔드 모듈: 트래커 및 정렬 특화 렌더러] ================= */
-        
-        // 📊 3. 드래그 슬라이더와 넘버 인풋 필드 간 양방향 연동 동기화 로직
         function syncProgressSliderMax() {
             const total = parseInt(document.getElementById('form-progress-total').value) || 1;
             const slider = document.getElementById('form-progress-range');
@@ -515,16 +515,13 @@
             document.getElementById('modal-live-percent').innerText = `${pct}%`;
         }
 
-        // ⏱️ 2. 시작(관람)날짜를 기준으로 내림차순(최신순) 정렬 처리 알고리즘 교체
         function getSortedArchiveLogs() {
             return [...archiveLogs].sort((a, b) => {
-                // 시작일이 없는 경우 예외처리 방어 로직 (맨 아래로 정렬)
                 const dateA = a.start ? a.start : "0000-00-00";
                 const dateB = b.start ? b.start : "0000-00-00";
-                
                 if (dateA < dateB) return 1;
                 if (dateA > dateB) return -1;
-                return b.id - a.id; // 시작일이 같으면 등록 고유 ID 역순 정렬
+                return b.id - a.id;
             });
         }
 
@@ -533,9 +530,7 @@
             const keyword = document.getElementById('search-input').value.toLowerCase();
             grid.innerHTML = '';
 
-            // 시작날짜 기준 정렬 정렬 데이터 획득
             const sortedData = getSortedArchiveLogs();
-
             const items = sortedData.filter(log => {
                 const isCat = currentCategory === 'all' || log.type.toLowerCase() === currentCategory;
                 const isKey = log.title.toLowerCase().includes(keyword) || log.review.toLowerCase().includes(keyword);
@@ -560,7 +555,6 @@
                 const tagSection = log.tags.map(t => `<span class="${tagBg} px-2 py-0.5 rounded text-[10px] font-semibold border">${t}</span>`).join('');
                 const dateView = log.end ? `${log.start.replace(/-/g, '/')} - ${log.end.replace(/-/g, '/')}` : log.start.replace(/-/g, '/');
 
-                // 📊 3. 카드 하단에 동적 프로그레스 게이지 바 마크업 주입 
                 let progressGaugeMarkup = '';
                 if (log.totalUnit && log.totalUnit > 0) {
                     const currentUnit = log.currentUnit || 0;
@@ -573,7 +567,7 @@
                                 <span>진행도: ${currentUnit}/${log.totalUnit} ${unitLabel}</span>
                                 <span class="text-blue-500 font-bold">${pct}%</span>
                             </div>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                            <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
                                 <div class="${pct === 100 ? 'bg-emerald-500' : 'bg-blue-500'} h-full rounded-full transition-all" style="width: ${pct}%"></div>
                             </div>
                         </div>
@@ -599,7 +593,7 @@
                             ${progressGaugeMarkup}
                             <p class="text-xs ${reviewColor} line-clamp-2 mt-2 leading-relaxed">${log.review || '작성된 평이 없습니다.'}</p>
                         </div>
-                        <div class="pt-2 border-t ${isDark ? 'border-gray-800/80' : 'border-[#f1f3f5]'} text-[10px] text-gray-400 flex items-center font-medium">
+                        <div class="pt-2 border-t text-[10px] text-gray-400 flex items-center font-medium">
                             <i class="fa-regular fa-calendar mr-1"></i>${dateView}
                         </div>
                     </div>
@@ -620,7 +614,6 @@
             document.getElementById('modal-img').src = target.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500';
             document.getElementById('modal-date-display').innerText = target.start.replace(/-/g, '/');
 
-            // 📊 모달 오픈 시 진행률 트래커 바인딩 조치
             const modalProgBox = document.getElementById('modal-progress-box');
             if (target.type === 'BOOK' || target.type === 'DRAMA') {
                 modalProgBox.classList.remove('hidden');
@@ -647,7 +640,6 @@
                 target.review = document.getElementById('modal-review').value;
                 target.rating = parseInt(document.getElementById('modal-rating').value);
                 
-                // 모달 진행도 수정 수치 수집 동기화
                 if (target.type === 'BOOK' || target.type === 'DRAMA') {
                     target.totalUnit = parseInt(document.getElementById('modal-progress-total').value) || 1;
                     target.currentUnit = parseInt(document.getElementById('modal-progress-current').value) || 0;
@@ -679,7 +671,6 @@
             const image = document.getElementById('form-image').value;
             const review = document.getElementById('form-review').value;
 
-            // 📊 3. 트래커 저장 주입 구조화
             let totalUnit = null;
             let currentUnit = null;
             if (type === 'BOOK' || type === 'DRAMA') {
@@ -691,7 +682,7 @@
             saveAndRefresh();
             document.getElementById('media-form').reset();
             document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
-            handleTypeChange(); // 입력 바 초기화 유도
+            handleTypeChange();
             applyThemeMode(currentThemeMode);
         }
 
@@ -699,11 +690,10 @@
             localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
             renderCards();
             if (googleAccessToken) {
-                uploadDataToGoogleDrive();
+                uploadDataToGoogleDrive(false, false);
             }
         }
 
-        // 📊 3. 드롭다운 변경 시 동적으로 폼 인풋창 제어하는 기능 가동
         function handleTypeChange() {
             const bMeta = document.getElementById('book-meta-fields');
             const type = document.getElementById('form-type').value;
@@ -712,7 +702,6 @@
             if(type === 'BOOK') bMeta.classList.remove('hidden');
             else bMeta.classList.add('hidden');
 
-            // 독서 / 드라마/예능 맞춤 레이블 분기 제어
             if (type === 'BOOK') {
                 pBox.classList.remove('hidden');
                 document.getElementById('progress-lbl-title').innerText = "📖 독서 진행 상황 트래커";
@@ -732,7 +721,7 @@
                 syncProgressSliderMax();
                 calculateLivePercent();
             } else {
-                pBox.classList.add('hidden'); // 영화, 음악일 때는 숨김
+                pBox.classList.add('hidden');
             }
         }
 
@@ -863,43 +852,20 @@
                 }
             });
         }
-
-        function simulateBookSearch() {
-            document.getElementById('search-results').classList.remove('hidden');
-        }
-
-        function selectBook(title, author, img) {
-            document.getElementById('form-type').value = "BOOK";
-            document.getElementById('form-title').value = title;
-            document.getElementById('form-author').value = author;
-            document.getElementById('form-image').value = img;
-            handleTypeChange();
-            openTab('dashboard');
-            applyThemeMode(currentThemeMode);
-            alert(`[${title}] 정보가 입력창에 복사되었습니다. 저장 버튼을 누르면 확정됩니다.`);
-        }
-
-        function openTab(name) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            const targetSection = document.getElementById(`${name}-tab`) || document.getElementById('main-dashboard');
-            targetSection.classList.remove('hidden');
-
-            document.querySelectorAll('.nav-btn').forEach(btn => {
+        
+        function openTab(tabId) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+            
+            const target = document.getElementById(`${tabId}-tab`) || document.getElementById(`main-${tabId}`);
+            if(target) target.classList.remove('hidden');
+            
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
                 btn.classList.remove('text-blue-600');
                 btn.classList.add('text-gray-400');
             });
-        }
-
-        function exportData() {
-            const link = document.createElement('a');
-            link.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(archiveLogs));
-            link.download = `my_archive_data.json`;
-            link.click();
-        }
-
-        function shareApp() {
-            navigator.clipboard.writeText(window.location.href);
-            alert("앱 링크 주소가 성공적으로 복사되었습니다!");
+            renderCards();
         }
     </script>
 </body>
