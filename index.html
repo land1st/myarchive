@@ -4,758 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Archive</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome 아이콘 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 구글 Identity Services (GIS) 라이브러리 (구글 로그인 및 드라이브 연동) -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- 구글 API 클라이언트 API 라이브러리 -->
-    <script src="https://apis.google.com/js/api.js" async defer></script>
-    <!-- Pretendard 폰트 최우선 적용 -->
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <style>
-        body, input, select, textarea, button {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important;
-        }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body, header, main, aside, nav, div, input, select, textarea, button, h2, h3, p, span {
-            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
-        }
-    </style>
-</head>
-<body id="app-body" class="bg-[#f8f9fa] text-[#212529] min-h-screen pb-24 lg:pb-6">
-
-    <!-- 1. 상단 헤더 내비게이션 -->
-    <header id="app-header" class="border-b border-[#e9ecef] bg-white sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm">
-        <div onclick="openTab('dashboard')" class="flex items-center space-x-2 cursor-pointer group select-none">
-            <span class="text-xl font-extrabold tracking-tight text-blue-600 flex items-center">
-                <i class="fa-solid fa-box-archive mr-2 text-blue-500 group-hover:scale-105 transition-transform"></i>My Archive
-            </span>
-        </div>
-        <div class="flex items-center space-x-4">
-            <!-- 🌗 다크/라이트 토글 스위치 버튼 -->
-            <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="text-gray-500 hover:text-gray-900 text-lg p-1.5 rounded-lg hover:bg-gray-100 transition">
-                <i class="fa-solid fa-moon"></i>
-            </button>
-            <!-- 🔄 구글 드라이브 동기화 연동 상태 스위치 -->
-            <button onclick="handleSyncButtonClick()" id="sync-status" class="text-xs bg-gray-100 text-gray-500 px-2.5 py-1.5 rounded-full border border-gray-200 font-semibold cursor-pointer flex items-center gap-1 transition">
-                <i class="fa-solid fa-circle-notch fa-spin hidden" id="sync-spinner"></i>
-                <i class="fa-solid fa-circle-exclamation" id="sync-icon"></i>
-                <span id="sync-text">동기화 되지 않음 (로그인 필요)</span>
-            </button>
-            <button onclick="openTab('settings')" class="text-gray-500 hover:text-gray-900 text-lg transition"><i class="fa-solid fa-gear"></i></button>
-        </div>
-    </header>
-
-    <!-- 메인 레이아웃 -->
-    <div class="max-w-[1400px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
-        <!-- ================= [메인 뷰 스페이스] ================= -->
-        <main class="lg:col-span-3 space-y-6">
-            
-            <!-- [메인 대시보드 탭] -->
-            <section id="main-dashboard" class="space-y-6 tab-content">
-                <!-- 상단 필터 및 검색바 컴포넌트 -->
-                <div id="search-filter-box" class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl border border-[#e9ecef] shadow-sm">
-                    <div class="relative w-full md:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-sm"></i>
-                        <input type="text" id="search-input" oninput="renderCards()" placeholder="기록된 모든 미디어 검색..." class="w-full bg-[#f1f3f5] pl-10 pr-4 py-2.5 rounded-lg text-sm text-[#495057] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent transition">
-                    </div>
-                    <!-- 필터 가로 스크롤 영역 -->
-                    <div class="flex space-x-1.5 overflow-x-auto w-full md:w-auto no-scrollbar py-1">
-                        <button onclick="filterCategory('all')" id="btn-filter-all" class="filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white shrink-0 shadow-sm transition">전체</button>
-                        <button onclick="filterCategory('book')" id="btn-filter-book" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">📚 독서</button>
-                        <button onclick="filterCategory('movie')" id="btn-filter-movie" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">🎬 영화</button>
-                        <button onclick="filterCategory('drama')" id="btn-filter-drama" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">📺 드라마</button>
-                        <button onclick="filterCategory('music')" id="btn-filter-music" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 transition">🎵 음악</button>
-                    </div>
-                </div>
-
-                <!-- 아카이브 미디어 그리드 -->
-                <div id="media-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                    <!-- 자바스크립트로 카드가 바인딩됩니다 -->
-                </div>
-            </section>
-
-            <!-- [📚 책 검색 탭] -->
-            <section id="book-search-tab" class="tab-content hidden space-y-4">
-                <div id="book-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4">
-                    <h2 id="book-title-txt" class="text-lg font-bold text-[#212529]">📚 독서 자동 기록 검색</h2>
-                    <div class="flex gap-2">
-                        <input type="text" id="api-book-search" placeholder="책 제목, 저자명을 입력해 보세요..." class="w-full bg-[#f1f3f5] text-gray-800 px-4 py-3 rounded-lg text-sm focus:outline-none border border-transparent focus:border-blue-500">
-                        <button onclick="simulateBookSearch()" class="bg-blue-600 text-white px-5 py-3 rounded-lg text-sm font-semibold hover:bg-blue-700 shrink-0"><i class="fa-solid fa-magnifying-glass"></i> 검색</button>
-                    </div>
-                    <div id="search-results" class="space-y-2 hidden">
-                        <div onclick="selectBook('프로젝트 헤일메리', '앤디 위어', 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500')" class="flex items-center gap-4 bg-[#f8f9fa] p-3 rounded-xl cursor-pointer hover:border-blue-500 border border-transparent transition shadow-sm">
-                            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500" class="w-10 h-14 object-cover rounded shadow-sm">
-                            <div>
-                                <h4 class="text-sm font-bold text-black">프로젝트 헤일메리</h4>
-                                <p class="text-xs text-gray-500">저자: 앤디 위어 | 출판사: 알에이치코리아</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- [📊 통계 리포트 탭] -->
-            <section id="stats-tab" class="tab-content hidden space-y-4">
-                <div id="stats-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm">
-                    <h2 id="stats-title-txt" class="text-lg font-bold mb-4">📊 기록 분석 통계</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold mb-1"><span>🎬 총 아카이브 미디어 수량</span><span id="stat-count-media">0개</span></div>
-                            <div class="w-full bg-[#e9ecef] h-2.5 rounded-full"><div class="bg-blue-500 h-2.5 rounded-full" style="width: 70%"></div></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- [⚙️ 시스템 설정 탭] -->
-            <section id="settings-tab" class="tab-content hidden space-y-4">
-                <div id="settings-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4">
-                    <h2 id="settings-title-txt" class="text-lg font-bold">⚙️ 시스템 옵션</h2>
-                    <div class="flex flex-wrap gap-2 pt-2">
-                        <button onclick="exportData()" class="bg-white border border-[#ced4da] px-4 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#f1f3f5] transition">📁 데이터 내보내기 (JSON)</button>
-                        <button onclick="shareApp()" class="bg-blue-50 text-blue-600 px-4 py-2.5 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">🔗 앱 주소 공유</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- ================= [오른쪽 고정 사이드바 - PC 퀵 입력 폼] ================= -->
-        <aside class="hidden lg:block lg:col-span-1">
-            <div id="form-box" class="bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm sticky top-24 space-y-4">
-                <h3 id="form-title-txt" class="text-sm font-bold text-gray-800 flex items-center"><i class="fa-solid fa-pen-to-square text-blue-500 mr-2"></i>새 미디어 기록</h3>
-                
-                <form id="media-form" onsubmit="handleFormSubmit(event)" class="space-y-3.5 text-xs">
-                    <div>
-                        <label id="lbl-type" class="block mb-1 text-gray-500 font-semibold">구분</label>
-                        <select id="form-type" onchange="handleTypeChange()" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 text-[#495057] font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                            <option value="MOVIE">🎬 영화</option>
-                            <option value="DRAMA">📺 드라마</option>
-                            <option value="BOOK">📚 독서</option>
-                            <option value="MUSIC">🎵 음악</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label id="lbl-title" class="block mb-1 text-gray-500 font-semibold">콘텐츠 제목</label>
-                        <input type="text" id="form-title" required class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 text-sm text-[#495057] focus:outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="제목 입력">
-                    </div>
-                    <div id="book-meta-fields" class="hidden">
-                        <label id="lbl-author" class="block mb-1 text-gray-500 font-semibold">저자 / 출판사</label>
-                        <input type="text" id="form-author" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057]" placeholder="예: 앤디 위어">
-                    </div>
-                    <div>
-                        <label id="lbl-tags" class="block mb-1 text-gray-500 font-semibold">플랫폼 / 커스텀 태그</label>
-                        <input type="text" id="form-tags" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057]" placeholder="쉼표로 구분 (예: 넷플릭스, 아이맥스)">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label id="lbl-start" class="block mb-1 text-gray-500 font-semibold">시작(관람)일</label>
-                            <input type="date" id="form-start" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2 focus:outline-none text-[#495057]">
-                        </div>
-                        <div>
-                            <label id="lbl-end" class="block mb-1 text-gray-500 font-semibold">종료일</label>
-                            <input type="date" id="form-end" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2 focus:outline-none text-[#495057]">
-                        </div>
-                    </div>
-                    <div>
-                        <label id="lbl-rating" class="block mb-1 text-gray-500 font-semibold">평점</label>
-                        <select id="form-rating" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 text-amber-500 font-bold focus:outline-none">
-                            <option value="5">⭐⭐⭐⭐⭐ (5.0)</option>
-                            <option value="4">⭐⭐⭐⭐☆ (4.0)</option>
-                            <option value="3">⭐⭐⭐☆☆ (3.0)</option>
-                            <option value="2">⭐⭐☆☆☆ (2.0)</option>
-                            <option value="1">⭐☆☆☆☆ (1.0)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label id="lbl-image" class="block mb-1 text-gray-500 font-semibold">커버 이미지 웹 주소 (URL)</label>
-                        <input type="url" id="form-image" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057]" placeholder="https://...">
-                    </div>
-                    <div>
-                        <label id="lbl-review" class="block mb-1 text-gray-500 font-semibold">한줄평 / 감상 기록</label>
-                        <textarea id="form-review" rows="3" class="w-full bg-[#f1f3f5] border-transparent rounded-lg p-2.5 focus:outline-none text-[#495057]" placeholder="기록하고 싶은 감상을 작성하세요..."></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition text-sm shadow-sm">
-                        로그 저장하기
-                    </button>
-                </form>
-            </div>
-        </aside>
-    </div>
-
-    <!-- 📱 모바일 하단 내비게이션 바 -->
-    <nav id="app-nav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#e9ecef] grid grid-cols-4 text-center py-2.5 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-        <button onclick="openTab('dashboard')" class="nav-btn text-blue-600 flex flex-col items-center justify-center space-y-1">
-            <i class="fa-solid fa-chart-simple text-lg"></i><span class="text-[10px] font-bold">대시보드</span>
-        </button>
-        <button onclick="openTab('book-search')" class="nav-btn text-gray-400 flex flex-col items-center justify-center space-y-1">
-            <i class="fa-solid fa-magnifying-glass text-lg"></i><span class="text-[10px] font-medium">북 검색</span>
-        </button>
-        <button onclick="openTab('stats')" class="nav-btn text-gray-400 flex flex-col items-center justify-center space-y-1">
-            <i class="fa-solid fa-pie-chart text-lg"></i><span class="text-[10px] font-medium">통계</span>
-        </button>
-        <button onclick="openTab('settings')" class="nav-btn text-gray-400 flex flex-col items-center justify-center space-y-1">
-            <i class="fa-solid fa-sliders text-lg"></i><span class="text-[10px] font-medium">설정</span>
-        </button>
-    </nav>
-
-    <!-- ================= [3. 미디어 세부 페이지 모달 윈도우] ================= -->
-    <div id="detail-modal" class="fixed inset-0 bg-black/50 items-center justify-center z-50 p-4 hidden flex">
-        <div id="modal-card-box" class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[#e9ecef] flex flex-col transition-colors duration-150">
-            <div class="relative h-48 bg-[#f1f3f5] overflow-hidden">
-                <img id="modal-img" src="" class="w-full h-full object-cover">
-                <button onclick="closeDetailModal()" class="absolute top-3 right-3 bg-black/40 hover:bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="p-5 space-y-4 flex-grow text-xs">
-                <input type="hidden" id="modal-id">
-                <div>
-                    <span id="modal-type-badge" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-100">TYPE</span>
-                    <h3 id="modal-title" class="text-base font-bold text-[#212529] mt-1.5">콘텐츠 명</h3>
-                </div>
-                
-                <div class="space-y-3">
-                    <div>
-                        <label id="lbl-modal-review" class="block text-gray-400 font-semibold mb-1">한줄평 수정</label>
-                        <textarea id="modal-review" rows="3" class="w-full bg-[#f1f3f5] text-[#495057] p-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 border border-transparent"></textarea>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label id="lbl-modal-rating" class="block text-gray-400 font-semibold mb-1">평점 수정</label>
-                            <select id="modal-rating" class="w-full bg-[#f1f3f5] p-2 rounded-lg font-bold text-amber-500 text-sm focus:outline-none">
-                                <option value="5">⭐⭐⭐⭐⭐</option>
-                                <option value="4">⭐⭐⭐⭐☆</option>
-                                <option value="3">⭐⭐⭐☆☆</option>
-                                <option value="2">⭐⭐☆☆☆</option>
-                                <option value="1">⭐☆☆☆☆</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label id="lbl-modal-date" class="block text-gray-400 font-semibold mb-1">기록일 확인</label>
-                            <div id="modal-date-display" class="bg-[#f1f3f5] p-2 rounded-lg text-gray-600 font-medium text-center text-sm">2026/05/21</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 pt-3 border-t border-[#e9ecef]">
-                    <button onclick="submitUpdateLog()" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold transition">수정사항 저장</button>
-                    <button onclick="submitDeleteLog()" class="bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg text-xs font-bold transition">삭제</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= [엔진 및 데이터 연동 자바스크립트 스크립트] ================= -->
-    <script>
-        // 🔑 Lee님의 구글 클라우드 클라이언트 ID 맵핑
-        const CLIENT_ID = '148691412107-od4tsqpl11hvm4sbajuku7t1dh8l1p23.apps.googleusercontent.com';
-        // 구글 드라이브 파일 읽기/쓰기 및 앱 전용 폴더 권한 스코프
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
-        const BACKUP_FILE_NAME = 'my_archive_data.json';
-
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
-        let googleAccessToken = null;
-        let driveFileId = null; // 구글 드라이브에 저장된 아카이브 파일 고유 ID
-
-        const defaultArchive = [
-            { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500' },
-            { id: 2, type: 'DRAMA', title: '레이디두아', tags: ['DRAMA', '넷플릭스', '완주'], rating: 4, review: '명품? No 사치품 !!!', start: '2026-03-27', end: '2026-03-28', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500' },
-            { id: 3, type: 'MOVIE', title: '행복의 나라로', tags: ['MOVIE'], rating: 5, review: '이선균 송영규 두 분 명목을 빕니다.', start: '2026-03-23', end: '', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500' },
-            { id: 4, type: 'BOOK', title: '프로젝트 헤일 메리', tags: ['MOVIE', 'IMAX'], rating: 5, review: '아이맥스 최고', start: '2026-03-21', end: '', image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500' }
-        ];
-
-        let archiveLogs = JSON.parse(localStorage.getItem('archiveLogs')) || defaultArchive;
-        let currentCategory = 'all';
-        let currentThemeMode = localStorage.getItem('themeMode') || 'light';
-
-        window.onload = function() {
-            applyThemeMode(currentThemeMode);
-            renderCards();
-            document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
-            
-            // 구글 인증 API 로드 개시
-            gapi.load('client', initGapiClient);
-            initHasClient();
-        };
-
-        /* ================= [백엔드 모듈: 구글 클라우드 드라이브 API 연동 엔진] ================= */
-        function initGapiClient() {
-            gapi.client.init({
-                // Discovery Docs를 통해 드라이브 v3 API 스펙 바인딩
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            }).then(() => {
-                gapiInited = true;
-                checkAuthStates();
-            }).catch(err => console.error("GAPI 초기화 에러:", err));
+        /* 기본 테마 및 다크모드 변수 정의 */
+        :root {
+            --bg-color: #121214;
+            --container-bg: #1a1c20;
+            --text-color: #e2e4e9;
+            --text-muted: #9aa0a6;
+            --border-color: #2f333a;
+            --input-bg: #262930;
+            --btn-sync-bg: #262930;
+            --btn-sync-text: #9aa0a6;
+            --btn-logout-bg: #1e3a2f;
+            --btn-logout-text: #52d68c;
+            --btn-logout-border: #285e43;
         }
 
-        function initHasClient() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: (tokenResponse) => {
-                    if (tokenResponse.error !== undefined) {
-                        showSyncStatus('error', '구글 권한 요청이 거부되었습니다.');
-                        return;
-                    }
-                    googleAccessToken = tokenResponse.access_token;
-                    localStorage.setItem('googleToken', googleAccessToken);
-                    showSyncStatus('loading', '구글 동기화 계정 연결 중...');
-                    loadDataFromGoogleDrive();
-                },
-            });
-            gisInited = true;
-            checkAuthStates();
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
         }
 
-        function checkAuthStates() {
-            const savedToken = localStorage.getItem('googleToken');
-            if (gapiInited && gisInited && savedToken) {
-                googleAccessToken = savedToken;
-                gapi.client.setToken({ access_token: googleAccessToken });
-                loadDataFromGoogleDrive();
-            }
+        .archive-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        function handleSyncButtonClick() {
-            if (!googleAccessToken) {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-                showSyncStatus('loading', '구글 드라이브 수동 동기화 중...');
-                loadDataFromGoogleDrive();
-            }
+        /* 헤더 바 스타일 */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
         }
 
-        // 구글 드라이브에서 JSON 백업본 탐색 및 병합 처리 함수
-        function loadDataFromGoogleDrive() {
-            gapi.client.setToken({ access_token: googleAccessToken });
-            gapi.client.drive.files.list({
-                q: `name='${BACKUP_FILE_NAME}' and trashed=false`,
-                fields: 'files(id, name)',
-                spaces: 'drive'
-            }).then(response => {
-                const files = response.result.files;
-                if (files && files.length > 0) {
-                    driveFileId = files[0].id;
-                    // 파일 내용 패치 다운로드
-                    gapi.client.drive.files.get({
-                        fileId: driveFileId,
-                        alt: 'media'
-                    }).then(res => {
-                        if (res.result && Array.isArray(res.result)) {
-                            // 클라우드 데이터와 로컬 데이터 병합 병렬 처리 (id 기준 유니크 유지)
-                            const cloudData = res.result;
-                            const localMap = new Map(archiveLogs.map(item => [item.id, item]));
-                            cloudData.forEach(item => localMap.set(item.id, item));
-                            archiveLogs = Array.from(localMap.values()).sort((a, b) => b.id - a.id);
-                            localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
-                            renderCards();
-                            showSyncStatus('success', '구글 드라이브 동기화 완료');
-                        } else {
-                            showSyncStatus('success', '동기화 완료 (연동 파일 포맷 초기화)');
-                        }
-                    }).catch(err => {
-                        console.error("파일 다운로드 실패, 재인증 필요:", err);
-                        showSyncStatus('error', '세션 만료 (다시 클릭하여 로그인)');
-                        googleAccessToken = null;
-                        localStorage.removeItem('googleToken');
-                    });
-                } else {
-                    // 파일이 없으면 로컬 데이터를 기반으로 구글 드라이브에 최초 생성 생성
-                    showSyncStatus('loading', '드라이브 내 전용 저장소 개설 중...');
-                    uploadDataToGoogleDrive(true);
-                }
-            }).catch(err => {
-                console.error("드라이브 목록 검색 실패:", err);
-                showSyncStatus('error', '구글 계정 연동 오류 발생');
-            });
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        // 구글 드라이브로 데이터 업로드 동기화 실행 함수
-        function uploadDataToGoogleDrive(isFirstCreation = false) {
-            if (!googleAccessToken) return;
-            gapi.client.setToken({ access_token: googleAccessToken });
-
-            const boundary = 'foo_bar_baz_boundary';
-            const delimiter = `\r\n--${boundary}\r\n`;
-            const close_delim = `\r\n--${boundary}--`;
-
-            const metadata = {
-                name: BACKUP_FILE_NAME,
-                mimeType: 'application/json'
-            };
-
-            const data = JSON.stringify(archiveLogs);
-            let multipartRequestBody =
-                delimiter +
-                'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-                JSON.stringify(metadata) +
-                delimiter +
-                'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-                data +
-                close_delim;
-
-            if (isFirstCreation || !driveFileId) {
-                // 신규 생성 POST 요청
-                gapi.client.request({
-                    path: '/upload/drive/v3/files',
-                    method: 'POST',
-                    params: { uploadType: 'multipart' },
-                    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-                    body: multipartRequestBody
-                }).then(res => {
-                    driveFileId = res.result.id;
-                    showSyncStatus('success', '실시간 드라이브 백업 활성화');
-                }).catch(err => console.error("최초 업로드 실패:", err));
-            } else {
-                // 기존 파일 덮어쓰기 PATCH 업데이트 요청
-                gapi.client.request({
-                    path: `/upload/drive/v3/files/${driveFileId}`,
-                    method: 'PATCH',
-                    params: { uploadType: 'multipart' },
-                    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-                    body: multipartRequestBody
-                }).then(() => {
-                    showSyncStatus('success', '구글 클라우드 백업 완료');
-                }).catch(err => console.error("업데이트 백업 실패:", err));
-            }
+        /* 구글 연동 / 로그아웃 토글 버튼 기본 스타일 */
+        .google-sync-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+            text-decoration: none;
+            user-select: none;
         }
 
-        // 상태창 UI 렌더러 전환 유틸리티
-        function showSyncStatus(type, message) {
-            const btn = document.getElementById('sync-status');
-            const icon = document.getElementById('sync-icon');
-            const spinner = document.getElementById('sync-spinner');
-            const txt = document.getElementById('sync-text');
-
-            spinner.classList.add('hidden');
-            icon.classList.remove('hidden', 'fa-circle-check', 'fa-circle-exclamation', 'fa-triangle-exclamation');
-
-            if (type === 'success') {
-                btn.className = "text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900/50 font-semibold cursor-pointer flex items-center gap-1 transition shadow-sm";
-                icon.classList.add('fa-circle-check');
-                txt.innerText = message;
-            } else if (type === 'loading') {
-                btn.className = "text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 px-2.5 py-1.5 rounded-full border border-blue-200 dark:border-blue-900/50 font-semibold cursor-pointer flex items-center gap-1 transition shadow-sm";
-                icon.classList.add('hidden');
-                spinner.classList.remove('hidden');
-                txt.innerText = message;
-            } else {
-                btn.className = "text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 px-2.5 py-1.5 rounded-full border border-amber-200 dark:border-amber-900/50 font-semibold cursor-pointer flex items-center gap-1 transition shadow-sm";
-                icon.classList.add('fa-triangle-exclamation');
-                txt.innerText = message;
-            }
+        /* 상태 1: 미연결 (구글 계정 연동) */
+        .google-sync-btn.unlinked {
+            background-color: var(--input-bg);
+            color: var(--btn-sync-text);
+            border: 1px solid var(--border-color);
+        }
+        .google-sync-btn.unlinked:hover {
+            background-color: #2f333a;
+            color: #ffffff;
         }
 
-        /* ================= [프론트엔드 모듈: 인터페이스 및 테마 제어 시스템] ================= */
-        function toggleThemeMode() {
-            currentThemeMode = (currentThemeMode === 'light') ? 'dark' : 'light';
-            localStorage.setItem('themeMode', currentThemeMode);
-            applyThemeMode(currentThemeMode);
+        /* 상태 2: 연결 완료 (🟢 구글 로그아웃) */
+        .google-sync-btn.linked {
+            background-color: var(--btn-logout-bg);
+            color: var(--btn-logout-text);
+            border: 1px solid var(--btn-logout-border);
         }
-
-        // 🌗 요청하신 카테고리 버튼 필터 톤다운 보정이 확실하게 내장된 다크모드 컴포넌트 렌더러
-        function applyThemeMode(mode) {
-            const body = document.getElementById('app-body');
-            const header = document.getElementById('app-header');
-            const searchFilterBox = document.getElementById('search-filter-box');
-            const bookBox = document.getElementById('book-box');
-            const statsBox = document.getElementById('stats-box');
-            const settingsBox = document.getElementById('settings-box');
-            const formBox = document.getElementById('form-box');
-            const nav = document.getElementById('app-nav');
-            const modalBox = document.getElementById('modal-card-box');
-            const toggleBtn = document.getElementById('theme-toggle-btn');
-            
-            const bookTitle = document.getElementById('book-title-txt');
-            const statsTitle = document.getElementById('stats-title-txt');
-            const settingsTitle = document.getElementById('settings-title-txt');
-            const formTitle = document.getElementById('form-title-txt');
-
-            const inputs = [
-                document.getElementById('search-input'), document.getElementById('api-book-search'),
-                document.getElementById('form-type'), document.getElementById('form-title'),
-                document.getElementById('form-author'), document.getElementById('form-tags'),
-                document.getElementById('form-start'), document.getElementById('form-end'),
-                document.getElementById('form-rating'), document.getElementById('form-image'),
-                document.getElementById('form-review'), document.getElementById('modal-review'),
-                document.getElementById('modal-rating'), document.getElementById('modal-date-display')
-            ];
-
-            const inputLabels = [
-                document.getElementById('lbl-type'), document.getElementById('lbl-title'),
-                document.getElementById('lbl-author'), document.getElementById('lbl-tags'),
-                document.getElementById('lbl-start'), document.getElementById('lbl-end'),
-                document.getElementById('lbl-rating'), document.getElementById('lbl-image'),
-                document.getElementById('lbl-review'), document.getElementById('lbl-modal-review'),
-                document.getElementById('lbl-modal-rating'), document.getElementById('lbl-modal-date')
-            ];
-
-            if (mode === 'dark') {
-                body.className = "bg-[#121214] text-gray-200 min-h-screen pb-24 lg:pb-6";
-                header.className = "border-b border-gray-800 bg-[#1a1a1e] sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm";
-                searchFilterBox.className = "flex flex-col md:flex-row gap-4 items-center justify-between bg-[#1a1a1e] p-4 rounded-xl border border-gray-800 shadow-sm";
-                if(bookBox) bookBox.className = "bg-[#1a1a1e] p-5 rounded-xl border border-gray-800 shadow-sm space-y-4";
-                if(statsBox) statsBox.className = "bg-[#1a1a1e] p-5 rounded-xl border border-gray-800 shadow-sm";
-                if(settingsBox) settingsBox.className = "bg-[#1a1a1e] p-5 rounded-xl border border-gray-800 shadow-sm space-y-4";
-                if(formBox) formBox.className = "bg-[#1a1a1e] p-5 rounded-xl border border-gray-800 shadow-sm sticky top-24 space-y-4";
-                if(nav) nav.className = "lg:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1e] border-t border-gray-800 grid grid-cols-4 text-center py-2.5 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.3)]";
-                if(modalBox) modalBox.className = "bg-[#1a1a1e] w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-gray-800 flex flex-col transition-colors duration-150";
-                
-                if(bookTitle) bookTitle.className = "text-lg font-bold text-white";
-                if(statsTitle) statsTitle.className = "text-lg font-bold text-white mb-4";
-                if(settingsTitle) settingsTitle.className = "text-lg font-bold text-white";
-                if(formTitle) formTitle.className = "text-sm font-bold text-white flex items-center";
-                
-                inputLabels.forEach(lbl => { if(lbl) lbl.className = "block mb-1 text-gray-400 font-semibold"; });
-                
-                // 🛠️ 인풋창 피드백 반영 강제 그레이 스펙 주입 고정
-                inputs.forEach(input => {
-                    if (input) {
-                        input.style.backgroundColor = "#262930";
-                        input.style.color = "#e5e7eb";
-                        input.style.borderColor = "transparent";
-                    }
-                });
-
-                toggleBtn.className = "text-amber-400 hover:text-amber-300 text-lg p-1.5 rounded-lg hover:bg-gray-800 transition";
-                toggleBtn.innerHTML = `<i class="fa-solid fa-sun"></i>`;
-            } else {
-                body.className = "bg-[#f8f9fa] text-[#212529] min-h-screen pb-24 lg:pb-6";
-                header.className = "border-b border-[#e9ecef] bg-white sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm";
-                searchFilterBox.className = "flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-xl border border-[#e9ecef] shadow-sm";
-                if(bookBox) bookBox.className = "bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4";
-                if(statsBox) statsBox.className = "bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm";
-                if(settingsBox) settingsBox.className = "bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm space-y-4";
-                if(formBox) formBox.className = "bg-white p-5 rounded-xl border border-[#e9ecef] shadow-sm sticky top-24 space-y-4";
-                if(nav) nav.className = "lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#e9ecef] grid grid-cols-4 text-center py-2.5 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]";
-                if(modalBox) modalBox.className = "bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-[#e9ecef] flex flex-col transition-colors duration-150";
-                
-                if(bookTitle) bookTitle.className = "text-lg font-bold text-[#212529]";
-                if(statsTitle) statsTitle.className = "text-lg font-bold text-[#212529] mb-4";
-                if(settingsTitle) settingsTitle.className = "text-lg font-bold text-[#212529]";
-                if(formTitle) formTitle.className = "text-sm font-bold text-gray-800 flex items-center";
-                
-                inputLabels.forEach(lbl => { if(lbl) lbl.className = "block mb-1 text-gray-500 font-semibold"; });
-
-                inputs.forEach(input => {
-                    if (input) {
-                        input.style.backgroundColor = "#f1f3f5";
-                        input.style.color = "#495057";
-                        input.style.borderColor = "transparent";
-                    }
-                });
-
-                toggleBtn.className = "text-gray-500 hover:text-gray-900 text-lg p-1.5 rounded-lg hover:bg-gray-100 transition";
-                toggleBtn.innerHTML = `<i class="fa-solid fa-moon"></i>`;
-            }
-            // 카테고리 필터 버튼 렌더링 동기화 위임
-            updateFilterButtonsUI();
-        }
-
-        // 🛠️ Lee님이 지적하신 [독서, 영화, 드라마, 음악] 다크모드 버튼 톤다운 보정 전문 스크립트 모듈
-        function updateFilterButtonsUI() {
-            const categories = ['all', 'book', 'movie', 'drama', 'music'];
-            const isDark = currentThemeMode === 'dark';
-
-            categories.forEach(cat => {
-                const btn = document.getElementById(`btn-filter-${cat}`);
-                if (!btn) return;
-
-                if (currentCategory === cat) {
-                    // 활성화된 타깃 카테고리 테마스타일
-                    btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white shrink-0 shadow-sm transition";
-                } else {
-                    // 🌟 비활성화 버튼 디자인 고정 분기점 처리
-                    if (isDark) {
-                        // 기존의 너무 밝았던 부분을 잡고 인풋창과 어우러지도록 톤 보정 및 그레이 다운 
-                        btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#262930] text-gray-400 hover:bg-[#31353e] hover:text-gray-200 shrink-0 border border-transparent transition";
-                    } else {
-                        btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 border border-transparent transition";
-                    }
-                }
-            });
-        }
-
-        function filterCategory(cat) {
-            currentCategory = cat;
-            updateFilterButtonsUI();
-            renderCards();
-        }
-
-        function renderCards() {
-            const grid = document.getElementById('media-grid');
-            const keyword = document.getElementById('search-input').value.toLowerCase();
-            grid.innerHTML = '';
-
-            const items = archiveLogs.filter(log => {
-                const isCat = currentCategory === 'all' || log.type.toLowerCase() === currentCategory;
-                const isKey = log.title.toLowerCase().includes(keyword) || log.review.toLowerCase().includes(keyword);
-                return isCat && isKey;
-            });
-
-            document.getElementById('stat-count-media').innerText = `${archiveLogs.length}개`;
-
-            if (items.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-400 text-sm">아카이브가 텅 비어 있습니다.</div>`;
-                return;
-            }
-
-            items.forEach(log => {
-                const stars = '★'.repeat(log.rating) + '☆'.repeat(5 - log.rating);
-                const isDark = currentThemeMode === 'dark';
-                const cardBg = isDark ? "bg-[#1a1a1e] border-gray-800 hover:border-gray-700" : "bg-white border-[#e9ecef] shadow-sm hover:shadow-md hover:border-gray-300";
-                const titleColor = isDark ? "text-white" : "text-black";
-                const reviewColor = isDark ? "text-gray-400" : "text-[#495057]";
-                const tagBg = isDark ? "bg-[#26262b] text-gray-300 border-gray-700" : "bg-[#f1f3f5] text-[#495057] border-[#e9ecef]";
-
-                const tagSection = log.tags.map(t => `<span class="${tagBg} px-2 py-0.5 rounded text-[10px] font-semibold border">${t}</span>`).join('');
-                const dateView = log.end ? `${log.start.replace(/-/g, '/')} - ${log.end.replace(/-/g, '/')}` : log.start.replace(/-/g, '/');
-
-                const card = document.createElement('div');
-                card.className = `${cardBg} rounded-xl overflow-hidden transition duration-200 cursor-pointer flex flex-col border`;
-                card.setAttribute("onclick", `openDetailModal(${log.id})`);
-                
-                card.innerHTML = `
-                    <div class="relative pt-[52%] bg-gray-800 overflow-hidden">
-                        <img src="${log.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500'}" class="absolute inset-0 w-full h-full object-cover">
-                    </div>
-                    <div class="p-4 flex flex-col flex-grow justify-between space-y-2">
-                        <div>
-                            <div class="text-sm font-bold ${titleColor} flex items-center gap-1.5">
-                                <i class="fa-regular fa-file-text text-gray-400 text-xs"></i>
-                                <span class="truncate">${log.title}</span>
-                            </div>
-                            <div class="flex flex-wrap gap-1 mt-1.5">${tagSection}</div>
-                            <div class="text-amber-500 font-medium text-xs mt-1 tracking-tight">${stars}</div>
-                            <p class="text-xs ${reviewColor} line-clamp-2 mt-1 leading-relaxed">${log.review || '작성된 평이 없습니다.'}</p>
-                        </div>
-                        <div class="pt-2 border-t ${isDark ? 'border-gray-800/80' : 'border-[#f1f3f5]'} text-[10px] text-gray-400 flex items-center font-medium">
-                            <i class="fa-regular fa-calendar mr-1"></i>${dateView}
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function openDetailModal(id) {
-            const target = archiveLogs.find(l => l.id === id);
-            if (!target) return;
-
-            document.getElementById('modal-id').value = target.id;
-            document.getElementById('modal-title').innerText = target.title;
-            document.getElementById('modal-type-badge').innerText = target.type;
-            document.getElementById('modal-review').value = target.review;
-            document.getElementById('modal-rating').value = target.rating;
-            document.getElementById('modal-img').src = target.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500';
-            document.getElementById('modal-date-display').innerText = target.start.replace(/-/g, '/');
-
-            applyThemeMode(currentThemeMode);
-            document.getElementById('detail-modal').classList.remove('hidden');
-        }
-
-        function closeDetailModal() {
-            document.getElementById('detail-modal').classList.add('hidden');
-        }
-
-        function submitUpdateLog() {
-            const id = parseInt(document.getElementById('modal-id').value);
-            const target = archiveLogs.find(l => l.id === id);
-            if(target) {
-                target.review = document.getElementById('modal-review').value;
-                target.rating = parseInt(document.getElementById('modal-rating').value);
-                saveAndRefresh();
-                closeDetailModal();
-            }
-        }
-
-        function submitDeleteLog() {
-            const id = parseInt(document.getElementById('modal-id').value);
-            if(confirm("이 미디어 로그 기록을 삭제할까요?")) {
-                archiveLogs = archiveLogs.filter(l => l.id !== id);
-                saveAndRefresh();
-                closeDetailModal();
-            }
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const type = document.getElementById('form-type').value;
-            const title = document.getElementById('form-title').value;
-            const tagsIn = document.getElementById('form-tags').value;
-            const tags = tagsIn ? tagsIn.split(',').map(t => t.trim()) : [type];
-            const start = document.getElementById('form-start').value;
-            const end = document.getElementById('form-end').value;
-            const rating = parseInt(document.getElementById('form-rating').value);
-            const image = document.getElementById('form-image').value;
-            const review = document.getElementById('form-review').value;
-
-            archiveLogs.unshift({ id: Date.now(), type, title, tags, start, end, rating, image, review });
-            saveAndRefresh();
-            document.getElementById('media-form').reset();
-            document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
-            applyThemeMode(currentThemeMode);
-        }
-
-        function saveAndRefresh() {
-            localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
-            renderCards();
-            // 데이터 무결성 조치에 따른 실시간 구글 드라이브 동기화 트리거 전송
-            if (googleAccessToken) {
-                uploadDataToGoogleDrive();
-            }
-        }
-
-        function handleTypeChange() {
-            const bMeta = document.getElementById('book-meta-fields');
-            if(document.getElementById('form-type').value === 'BOOK') bMeta.classList.remove('hidden');
-            else bMeta.classList.add('hidden');
-        }
-
-        function simulateBookSearch() {
-            document.getElementById('search-results').classList.remove('hidden');
-        }
-
-        function selectBook(title, author, img) {
-            document.getElementById('form-type').value = "BOOK";
-            document.getElementById('form-title').value = title;
-            document.getElementById('form-author').value = author;
-            document.getElementById('form-image').value = img;
-            handleTypeChange();
-            openTab('dashboard');
-            applyThemeMode(currentThemeMode);
-            alert(`[${title}] 정보가 입력창에 복사되었습니다. 저장 버튼을 누르면 확정됩니다.`);
-        }
-
-        function openTab(name) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            const targetSection = document.getElementById(`${name}-tab`) || document.getElementById('main-dashboard');
-            targetSection.classList.remove('hidden');
-
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-blue-600');
-                btn.classList.add('text-gray-400');
-            });
-        }
-
-        function exportData() {
-            const link = document.createElement('a');
-            link.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(archiveLogs));
-            link.download = `my_archive_data.json`;
-            link.click();
-        }
-
-        function shareApp() {
-            navigator.clipboard.writeText(window.location.href);
-            alert("앱 링크 주소가 성공적으로 복사되었습니다!");
-        }
-    </script>
-</body>
-</html>
+        .google-sync-btn.linked:hover {
+            background-color: #2
