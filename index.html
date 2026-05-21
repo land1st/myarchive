@@ -8,17 +8,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 아이콘 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Pretendard 폰트 불러오기 (무조건 프리텐다드 고정) -->
+    <!-- 구글 Identity Services (GIS) 라이브러리 (구글 로그인 및 드라이브 연동) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- 구글 API 클라이언트 API 라이브러리 -->
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <!-- Pretendard 폰트 최우선 적용 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <style>
-        /* 프리텐다드 폰트 최우선 강제 적용 */
         body, input, select, textarea, button {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* 다크/라이트 모드 부드러운 전환 효과 */
         body, header, main, aside, nav, div, input, select, textarea, button, h2, h3, p, span {
             transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
         }
@@ -35,14 +36,16 @@
         </div>
         <div class="flex items-center space-x-4">
             <!-- 🌗 다크/라이트 토글 스위치 버튼 -->
-            <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white text-lg p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+            <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="text-gray-500 hover:text-gray-900 text-lg p-1.5 rounded-lg hover:bg-gray-100 transition">
                 <i class="fa-solid fa-moon"></i>
             </button>
-            <!-- 구글 동기화 상태 표시 -->
-            <span id="sync-status" class="text-xs bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-200/60 font-medium cursor-pointer" onclick="toggleSync()">
-                <i class="fa-solid fa-circle-check mr-1"></i> 구글 동기화 켬
-            </span>
-            <button onclick="openTab('settings')" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white text-lg transition"><i class="fa-solid fa-gear"></i></button>
+            <!-- 🔄 구글 드라이브 동기화 연동 상태 스위치 -->
+            <button onclick="handleSyncButtonClick()" id="sync-status" class="text-xs bg-gray-100 text-gray-500 px-2.5 py-1.5 rounded-full border border-gray-200 font-semibold cursor-pointer flex items-center gap-1 transition">
+                <i class="fa-solid fa-circle-notch fa-spin hidden" id="sync-spinner"></i>
+                <i class="fa-solid fa-circle-exclamation" id="sync-icon"></i>
+                <span id="sync-text">동기화 되지 않음 (로그인 필요)</span>
+            </button>
+            <button onclick="openTab('settings')" class="text-gray-500 hover:text-gray-900 text-lg transition"><i class="fa-solid fa-gear"></i></button>
         </div>
     </header>
 
@@ -248,6 +251,18 @@
 
     <!-- ================= [엔진 및 데이터 연동 자바스크립트 스크립트] ================= -->
     <script>
+        // 🔑 Lee님의 구글 클라우드 클라이언트 ID 맵핑
+        const CLIENT_ID = '148691412107-od4tsqpl11hvm4sbajuku7t1dh8l1p23.apps.googleusercontent.com';
+        // 구글 드라이브 파일 읽기/쓰기 및 앱 전용 폴더 권한 스코프
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
+        const BACKUP_FILE_NAME = 'my_archive_data.json';
+
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+        let googleAccessToken = null;
+        let driveFileId = null; // 구글 드라이브에 저장된 아카이브 파일 고유 ID
+
         const defaultArchive = [
             { id: 1, type: 'DRAMA', title: '사냥개들2', tags: ['DRAMA', '넷플릭스', '완주'], rating: 5, review: '액션은 최고 수준', start: '2026-04-03', end: '2026-04-05', image: 'https://images.unsplash.com/photo-1601513525393-8393e2938e36?w=500' },
             { id: 2, type: 'DRAMA', title: '레이디두아', tags: ['DRAMA', '넷플릭스', '완주'], rating: 4, review: '명품? No 사치품 !!!', start: '2026-03-27', end: '2026-03-28', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500' },
@@ -263,15 +278,189 @@
             applyThemeMode(currentThemeMode);
             renderCards();
             document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
+            
+            // 구글 인증 API 로드 개시
+            gapi.load('client', initGapiClient);
+            initHasClient();
         };
 
+        /* ================= [백엔드 모듈: 구글 클라우드 드라이브 API 연동 엔진] ================= */
+        function initGapiClient() {
+            gapi.client.init({
+                // Discovery Docs를 통해 드라이브 v3 API 스펙 바인딩
+                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+            }).then(() => {
+                gapiInited = true;
+                checkAuthStates();
+            }).catch(err => console.error("GAPI 초기화 에러:", err));
+        }
+
+        function initHasClient() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: (tokenResponse) => {
+                    if (tokenResponse.error !== undefined) {
+                        showSyncStatus('error', '구글 권한 요청이 거부되었습니다.');
+                        return;
+                    }
+                    googleAccessToken = tokenResponse.access_token;
+                    localStorage.setItem('googleToken', googleAccessToken);
+                    showSyncStatus('loading', '구글 동기화 계정 연결 중...');
+                    loadDataFromGoogleDrive();
+                },
+            });
+            gisInited = true;
+            checkAuthStates();
+        }
+
+        function checkAuthStates() {
+            const savedToken = localStorage.getItem('googleToken');
+            if (gapiInited && gisInited && savedToken) {
+                googleAccessToken = savedToken;
+                gapi.client.setToken({ access_token: googleAccessToken });
+                loadDataFromGoogleDrive();
+            }
+        }
+
+        function handleSyncButtonClick() {
+            if (!googleAccessToken) {
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+            } else {
+                showSyncStatus('loading', '구글 드라이브 수동 동기화 중...');
+                loadDataFromGoogleDrive();
+            }
+        }
+
+        // 구글 드라이브에서 JSON 백업본 탐색 및 병합 처리 함수
+        function loadDataFromGoogleDrive() {
+            gapi.client.setToken({ access_token: googleAccessToken });
+            gapi.client.drive.files.list({
+                q: `name='${BACKUP_FILE_NAME}' and trashed=false`,
+                fields: 'files(id, name)',
+                spaces: 'drive'
+            }).then(response => {
+                const files = response.result.files;
+                if (files && files.length > 0) {
+                    driveFileId = files[0].id;
+                    // 파일 내용 패치 다운로드
+                    gapi.client.drive.files.get({
+                        fileId: driveFileId,
+                        alt: 'media'
+                    }).then(res => {
+                        if (res.result && Array.isArray(res.result)) {
+                            // 클라우드 데이터와 로컬 데이터 병합 병렬 처리 (id 기준 유니크 유지)
+                            const cloudData = res.result;
+                            const localMap = new Map(archiveLogs.map(item => [item.id, item]));
+                            cloudData.forEach(item => localMap.set(item.id, item));
+                            archiveLogs = Array.from(localMap.values()).sort((a, b) => b.id - a.id);
+                            localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
+                            renderCards();
+                            showSyncStatus('success', '구글 드라이브 동기화 완료');
+                        } else {
+                            showSyncStatus('success', '동기화 완료 (연동 파일 포맷 초기화)');
+                        }
+                    }).catch(err => {
+                        console.error("파일 다운로드 실패, 재인증 필요:", err);
+                        showSyncStatus('error', '세션 만료 (다시 클릭하여 로그인)');
+                        googleAccessToken = null;
+                        localStorage.removeItem('googleToken');
+                    });
+                } else {
+                    // 파일이 없으면 로컬 데이터를 기반으로 구글 드라이브에 최초 생성 생성
+                    showSyncStatus('loading', '드라이브 내 전용 저장소 개설 중...');
+                    uploadDataToGoogleDrive(true);
+                }
+            }).catch(err => {
+                console.error("드라이브 목록 검색 실패:", err);
+                showSyncStatus('error', '구글 계정 연동 오류 발생');
+            });
+        }
+
+        // 구글 드라이브로 데이터 업로드 동기화 실행 함수
+        function uploadDataToGoogleDrive(isFirstCreation = false) {
+            if (!googleAccessToken) return;
+            gapi.client.setToken({ access_token: googleAccessToken });
+
+            const boundary = 'foo_bar_baz_boundary';
+            const delimiter = `\r\n--${boundary}\r\n`;
+            const close_delim = `\r\n--${boundary}--`;
+
+            const metadata = {
+                name: BACKUP_FILE_NAME,
+                mimeType: 'application/json'
+            };
+
+            const data = JSON.stringify(archiveLogs);
+            let multipartRequestBody =
+                delimiter +
+                'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+                JSON.stringify(metadata) +
+                delimiter +
+                'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+                data +
+                close_delim;
+
+            if (isFirstCreation || !driveFileId) {
+                // 신규 생성 POST 요청
+                gapi.client.request({
+                    path: '/upload/drive/v3/files',
+                    method: 'POST',
+                    params: { uploadType: 'multipart' },
+                    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+                    body: multipartRequestBody
+                }).then(res => {
+                    driveFileId = res.result.id;
+                    showSyncStatus('success', '실시간 드라이브 백업 활성화');
+                }).catch(err => console.error("최초 업로드 실패:", err));
+            } else {
+                // 기존 파일 덮어쓰기 PATCH 업데이트 요청
+                gapi.client.request({
+                    path: `/upload/drive/v3/files/${driveFileId}`,
+                    method: 'PATCH',
+                    params: { uploadType: 'multipart' },
+                    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+                    body: multipartRequestBody
+                }).then(() => {
+                    showSyncStatus('success', '구글 클라우드 백업 완료');
+                }).catch(err => console.error("업데이트 백업 실패:", err));
+            }
+        }
+
+        // 상태창 UI 렌더러 전환 유틸리티
+        function showSyncStatus(type, message) {
+            const btn = document.getElementById('sync-status');
+            const icon = document.getElementById('sync-icon');
+            const spinner = document.getElementById('sync-spinner');
+            const txt = document.getElementById('sync-text');
+
+            spinner.classList.add('hidden');
+            icon.classList.remove('hidden', 'fa-circle-check', 'fa-circle-exclamation', 'fa-triangle-exclamation');
+
+            if (type === 'success') {
+                btn.className = "text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900/50 font-semibold cursor-pointer flex items-center gap-1 transition shadow-sm";
+                icon.classList.add('fa-circle-check');
+                txt.innerText = message;
+            } else if (type === 'loading') {
+                btn.className = "text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 px-2.5 py-1.5 rounded-full border border-blue-200 dark:border-blue-900/50 font-semibold cursor-pointer flex items-center gap-1 transition shadow-sm";
+                icon.classList.add('hidden');
+                spinner.classList.remove('hidden');
+                txt.innerText = message;
+            } else {
+                btn.className = "text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 px-2.5 py-1.5 rounded-full border border-amber-200 dark:border-amber-900/50 font-semibold cursor-pointer flex items-center gap-1 transition shadow-sm";
+                icon.classList.add('fa-triangle-exclamation');
+                txt.innerText = message;
+            }
+        }
+
+        /* ================= [프론트엔드 모듈: 인터페이스 및 테마 제어 시스템] ================= */
         function toggleThemeMode() {
             currentThemeMode = (currentThemeMode === 'light') ? 'dark' : 'light';
             localStorage.setItem('themeMode', currentThemeMode);
             applyThemeMode(currentThemeMode);
         }
 
-        // 🌗 자바스크립트 클래스 바인딩을 완벽하게 재구성하여 다크모드 인풋 그레이 배경 강제화 해결
+        // 🌗 요청하신 카테고리 버튼 필터 톤다운 보정이 확실하게 내장된 다크모드 컴포넌트 렌더러
         function applyThemeMode(mode) {
             const body = document.getElementById('app-body');
             const header = document.getElementById('app-header');
@@ -284,43 +473,28 @@
             const modalBox = document.getElementById('modal-card-box');
             const toggleBtn = document.getElementById('theme-toggle-btn');
             
-            // 텍스트 타이틀 타깃들
             const bookTitle = document.getElementById('book-title-txt');
             const statsTitle = document.getElementById('stats-title-txt');
             const settingsTitle = document.getElementById('settings-title-txt');
             const formTitle = document.getElementById('form-title-txt');
 
-            // 전역 인풋/셀렉트 엘리먼트 배열 지정
             const inputs = [
-                document.getElementById('search-input'),
-                document.getElementById('api-book-search'),
-                document.getElementById('form-type'),
-                document.getElementById('form-title'),
-                document.getElementById('form-author'),
-                document.getElementById('form-tags'),
-                document.getElementById('form-start'),
-                document.getElementById('form-end'),
-                document.getElementById('form-rating'),
-                document.getElementById('form-image'),
-                document.getElementById('form-review'),
-                document.getElementById('modal-review'),
-                document.getElementById('modal-rating'),
-                document.getElementById('modal-date-display')
+                document.getElementById('search-input'), document.getElementById('api-book-search'),
+                document.getElementById('form-type'), document.getElementById('form-title'),
+                document.getElementById('form-author'), document.getElementById('form-tags'),
+                document.getElementById('form-start'), document.getElementById('form-end'),
+                document.getElementById('form-rating'), document.getElementById('form-image'),
+                document.getElementById('form-review'), document.getElementById('modal-review'),
+                document.getElementById('modal-rating'), document.getElementById('modal-date-display')
             ];
 
             const inputLabels = [
-                document.getElementById('lbl-type'),
-                document.getElementById('lbl-title'),
-                document.getElementById('lbl-author'),
-                document.getElementById('lbl-tags'),
-                document.getElementById('lbl-start'),
-                document.getElementById('lbl-end'),
-                document.getElementById('lbl-rating'),
-                document.getElementById('lbl-image'),
-                document.getElementById('lbl-review'),
-                document.getElementById('lbl-modal-review'),
-                document.getElementById('lbl-modal-rating'),
-                document.getElementById('lbl-modal-date')
+                document.getElementById('lbl-type'), document.getElementById('lbl-title'),
+                document.getElementById('lbl-author'), document.getElementById('lbl-tags'),
+                document.getElementById('lbl-start'), document.getElementById('lbl-end'),
+                document.getElementById('lbl-rating'), document.getElementById('lbl-image'),
+                document.getElementById('lbl-review'), document.getElementById('lbl-modal-review'),
+                document.getElementById('lbl-modal-rating'), document.getElementById('lbl-modal-date')
             ];
 
             if (mode === 'dark') {
@@ -339,10 +513,9 @@
                 if(settingsTitle) settingsTitle.className = "text-lg font-bold text-white";
                 if(formTitle) formTitle.className = "text-sm font-bold text-white flex items-center";
                 
-                // 🛠️ 인풋 라벨 및 플레이스홀더 제어 강화
                 inputLabels.forEach(lbl => { if(lbl) lbl.className = "block mb-1 text-gray-400 font-semibold"; });
-
-                // 🛠️ 모든 인풋 엘리먼트 배경을 원하셨던 그레이 톤으로 강력하게 교체 조치
+                
+                // 🛠️ 인풋창 피드백 반영 강제 그레이 스펙 주입 고정
                 inputs.forEach(input => {
                     if (input) {
                         input.style.backgroundColor = "#262930";
@@ -351,7 +524,8 @@
                     }
                 });
 
-                toggleBtn.innerHTML = `<i class="fa-solid fa-sun text-amber-400"></i>`;
+                toggleBtn.className = "text-amber-400 hover:text-amber-300 text-lg p-1.5 rounded-lg hover:bg-gray-800 transition";
+                toggleBtn.innerHTML = `<i class="fa-solid fa-sun"></i>`;
             } else {
                 body.className = "bg-[#f8f9fa] text-[#212529] min-h-screen pb-24 lg:pb-6";
                 header.className = "border-b border-[#e9ecef] bg-white sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between shadow-sm";
@@ -378,8 +552,40 @@
                     }
                 });
 
+                toggleBtn.className = "text-gray-500 hover:text-gray-900 text-lg p-1.5 rounded-lg hover:bg-gray-100 transition";
                 toggleBtn.innerHTML = `<i class="fa-solid fa-moon"></i>`;
             }
+            // 카테고리 필터 버튼 렌더링 동기화 위임
+            updateFilterButtonsUI();
+        }
+
+        // 🛠️ Lee님이 지적하신 [독서, 영화, 드라마, 음악] 다크모드 버튼 톤다운 보정 전문 스크립트 모듈
+        function updateFilterButtonsUI() {
+            const categories = ['all', 'book', 'movie', 'drama', 'music'];
+            const isDark = currentThemeMode === 'dark';
+
+            categories.forEach(cat => {
+                const btn = document.getElementById(`btn-filter-${cat}`);
+                if (!btn) return;
+
+                if (currentCategory === cat) {
+                    // 활성화된 타깃 카테고리 테마스타일
+                    btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white shrink-0 shadow-sm transition";
+                } else {
+                    // 🌟 비활성화 버튼 디자인 고정 분기점 처리
+                    if (isDark) {
+                        // 기존의 너무 밝았던 부분을 잡고 인풋창과 어우러지도록 톤 보정 및 그레이 다운 
+                        btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#262930] text-gray-400 hover:bg-[#31353e] hover:text-gray-200 shrink-0 border border-transparent transition";
+                    } else {
+                        btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef] shrink-0 border border-transparent transition";
+                    }
+                }
+            });
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            updateFilterButtonsUI();
             renderCards();
         }
 
@@ -413,7 +619,7 @@
                 const dateView = log.end ? `${log.start.replace(/-/g, '/')} - ${log.end.replace(/-/g, '/')}` : log.start.replace(/-/g, '/');
 
                 const card = document.createElement('div');
-                card.className = `${cardBg} rounded-xl overflow-hidden transition duration-200 cursor-pointer flex flex-col`;
+                card.className = `${cardBg} rounded-xl overflow-hidden transition duration-200 cursor-pointer flex flex-col border`;
                 card.setAttribute("onclick", `openDetailModal(${log.id})`);
                 
                 card.innerHTML = `
@@ -451,9 +657,7 @@
             document.getElementById('modal-img').src = target.image || 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500';
             document.getElementById('modal-date-display').innerText = target.start.replace(/-/g, '/');
 
-            // 모달 오픈 시 테마 재적용으로 인풋 배경색 유실 원천 차단
             applyThemeMode(currentThemeMode);
-
             document.getElementById('detail-modal').classList.remove('hidden');
         }
 
@@ -503,18 +707,10 @@
         function saveAndRefresh() {
             localStorage.setItem('archiveLogs', JSON.stringify(archiveLogs));
             renderCards();
-        }
-
-        function filterCategory(cat) {
-            currentCategory = cat;
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
-                b.classList.add('bg-[#f1f3f5]', 'text-[#495057]');
-            });
-            const active = document.getElementById(`btn-filter-${cat}`);
-            active.classList.remove('bg-[#f1f3f5]', 'text-[#495057]');
-            active.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
-            renderCards();
+            // 데이터 무결성 조치에 따른 실시간 구글 드라이브 동기화 트리거 전송
+            if (googleAccessToken) {
+                uploadDataToGoogleDrive();
+            }
         }
 
         function handleTypeChange() {
@@ -559,10 +755,6 @@
         function shareApp() {
             navigator.clipboard.writeText(window.location.href);
             alert("앱 링크 주소가 성공적으로 복사되었습니다!");
-        }
-
-        function toggleSync() {
-            alert("구글 계정 실시간 데이터 동기화 옵션 상태를 전환합니다.");
         }
     </script>
 </body>
